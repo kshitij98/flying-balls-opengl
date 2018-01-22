@@ -12,7 +12,7 @@ GLFWwindow *window;
 * Customizable functions *
 **************************/
 
-Ball ball1, ball2;
+Ball player;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 
@@ -50,25 +50,27 @@ void draw() {
     glm::mat4 MVP;  // MVP = Projection * View * Model
 
     // Scene render
-    ball1.draw(VP);
-    ball2.draw(VP);
+    player.draw(VP);
 }
 
 void tick_input(GLFWwindow *window) {
-    int left  = glfwGetKey(window, GLFW_KEY_LEFT);
-    int right = glfwGetKey(window, GLFW_KEY_RIGHT);
-    if (left) {
-        // Do something
-    }
+    int left  = glfwGetKey(window, GLFW_KEY_A);
+    int right = glfwGetKey(window, GLFW_KEY_D);
+    // int zoom_in = 
+    if (left && !right)
+    	player.move('l');
+    else if (right && !left)
+    	player.move('r');
+    else
+    	player.move('s');
 }
 
 void tick_elements() {
-    ball1.tick();
-    ball2.tick();
-    if (detect_collision(ball1.bounding_box(), ball2.bounding_box())) {
-        ball1.speed = -ball1.speed;
-        ball2.speed = -ball2.speed;
-    }
+    player.tick();
+    // if (detect_collision(player.bounding_box(), ball2.bounding_box())) {
+    //     player.speed = -player.speed;
+    //     ball2.speed = -ball2.speed;
+    // }
 }
 
 /* Initialize the OpenGL rendering properties */
@@ -77,9 +79,7 @@ void initGL(GLFWwindow *window, int width, int height) {
     /* Objects should be created before any other gl function and shaders */
     // Create the models
 
-    ball1       = Ball(2, 0, COLOR_RED);
-    ball2       = Ball(-2, 0, COLOR_RED);
-    ball2.speed = -ball2.speed;
+    player = Ball(0, 0, COLOR_RED);
 
     // Create and compile our GLSL program from the shaders
     programID = LoadShaders("Sample_GL.vert", "Sample_GL.frag");
@@ -145,4 +145,9 @@ void reset_screen() {
     float left   = screen_center_x - 4 / screen_zoom;
     float right  = screen_center_x + 4 / screen_zoom;
     Matrices.projection = glm::ortho(left, right, bottom, top, 0.1f, 500.0f);
+}
+
+bool jump() {
+	player.jump();
+	// cerr << "Jumping...";
 }
