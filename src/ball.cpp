@@ -4,27 +4,38 @@ using namespace std;
 #include "ball.h"
 #include "main.h"
 
-double gravity;
 
 Ball::Ball(float x, float y, color_t color) {
     this -> position = glm::vec3(x, y, 0);
     this -> rotation = 0;
-    this -> max_speed = 0.05;
-    this -> acceleration = 0.004;
+    this -> max_speed = 0.05f;
+    this -> acceleration = 0.004f;
     this -> directionX = 0;
-    speed = 0;
-    gravity = 0.004;
-    static const GLfloat vertex_buffer_data[] = {
-        -0.2, -0.2, 0, // vertex 1
-        0.2,  -0.2, 0, // vertex 2
-        0.2,  0.2, 0, // vertex 3
+    this -> inside = false;
 
-        0.2,  0.2, 0, // vertex 3
-        -0.2, 0.2, 0, // vertex 4
-        -0.2, -0.2, 0 // vertex 1
-    };
+    // speed = 0;
+    // gravity = 0.004;
 
-    this->object = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, color, GL_FILL);
+    this -> speed = glm::vec3(0, 0, 0);
+
+    const int n = 30;
+
+    GLfloat ball_data[3*3*n];
+
+    float deg = 360.0 / n;
+    float r = 0.2;
+    for (int i=0 ; i<n ; ++i) {
+        for (int j=0 ; j<9 ; ++j)
+            ball_data[(i*9) + j] = 0.0f;
+
+        ball_data[i*9 + 3] = r * cos((deg * i * M_PI) / 180.0);
+        ball_data[i*9 + 4] = r * sin((deg * i * M_PI) / 180.0);
+
+        ball_data[i*9 + 6] = r * cos((deg * (i+1) * M_PI) / 180.0);
+        ball_data[i*9 + 7] = r * sin((deg * (i+1) * M_PI) / 180.0);
+    }
+
+    this -> object = create3DObject(GL_TRIANGLES, 3*n, ball_data, color, GL_FILL);
 }
 
 void Ball::draw(glm::mat4 VP) {
@@ -39,39 +50,38 @@ void Ball::draw(glm::mat4 VP) {
 }
 
 void Ball::set_position(float x, float y) {
-    this->position = glm::vec3(x, y, 0);
+    this -> position = glm::vec3(x, y, 0);
 }
 
 void Ball::tick() {
-    this -> position.x += speed;
-    this -> position.y += speedY;
-
-    this -> directionX = this -> speed ? ((this -> speed > 0) ? 1 : -1) : 0;
-    this -> speedY -= gravity;
+    glm::vec3 damp = (this -> inside ? glm::vec3(0.2, 0.2, 0) : glm::vec3(1, 1, 0));
+    this -> position += damp * speed;
+    this -> directionX = speed.x != 0.0 ? ((speed.x > 0) ? 1 : -1) : 0;
+    speed.y -= gravity;
 
     // this->position.y -= speed;
 }
 
 bounding_box_t Ball::bounding_box() {
-    float x = this->position.x, y = this->position.y;
+    float x = this -> position.x, y = this -> position.y;
     bounding_box_t bbox = { x, y, 0.4, 0.4 };
     return bbox;
 }
 
 void Ball::move(char direction) {
 	if (direction == 'r')
-		this -> speed = max(this -> speed, min(this -> speed + this -> acceleration, this -> max_speed));
+        speed.x = max(speed.x, min(speed.x + this -> acceleration, (this -> max_speed)));
 	else if (direction == 'l')
-		this -> speed = min(this -> speed, max(this -> speed - this -> acceleration, -(this -> max_speed)));
+        speed.x = min(speed.x, max(speed.x - this -> acceleration, -(this -> max_speed)));
 	else {
 		if (this -> directionX > 0)
-			this -> speed = max(0.0, this -> speed - this -> acceleration);
+            speed.x = max(0.0f, speed.x - this -> acceleration);
 		else if (this -> directionX < 0)
-			this -> speed = min(0.0, this -> speed + this -> acceleration);
+            speed.x = min(0.0f, speed.x + this -> acceleration);
 	}
 }
 
 void Ball::jump() {
 	// TODO: If lower half is colliding with floor, or something...
-	this -> speedY = 0.1;
+	speed.y = 0.1;
 }

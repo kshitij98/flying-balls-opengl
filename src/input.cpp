@@ -35,16 +35,17 @@ void keyboard(GLFWwindow *window, int key, int scancode, int action, int mods) {
         default:
         break;
         }
-    } else if (action == GLFW_PRESS) {
+    }
+    else if (action == GLFW_PRESS) {
         switch (key) {
-	        	case GLFW_KEY_SPACE:
-								jump();
-  		    		  break;
-	        	case GLFW_KEY_ESCAPE:
-	            	quit(window);
-	            	break;
-	        	default:
-	          	  break;
+	        case GLFW_KEY_SPACE:
+                jump();
+  		        break;
+	        case GLFW_KEY_ESCAPE:
+                quit(window);
+                break;
+            default:
+                break;
         }
     }
 }
@@ -83,5 +84,5 @@ void mouseButton(GLFWwindow *window, int button, int action, int mods) {
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-    // Do something
+    zoom(yoffset);
 }

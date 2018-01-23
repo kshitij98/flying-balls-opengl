@@ -3,6 +3,10 @@
 #ifndef BALL_H
 #define BALL_H
 
+const double gravity = 0.004;
+// const double max_speed = 0.05;
+// const double accelerationX = 0.004;
+
 class Ball {
 public:
     Ball() {}
@@ -13,13 +17,13 @@ public:
     void set_position(float x, float y);
     void tick();
     int directionX;
-    double speed;
-    double speedY;
-    double max_speed;
-    double acceleration;
+    glm::vec3 speed;
+    float max_speed;
+    float acceleration;
     void move(char direction);
     void jump();
     bounding_box_t bounding_box();
+    bool inside;
 private:
     VAO *object;
 };

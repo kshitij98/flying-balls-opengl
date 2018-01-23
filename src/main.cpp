@@ -1,6 +1,10 @@
 #include "main.h"
 #include "timer.h"
 #include "ball.h"
+#include "ground.h"
+#include "ground.cpp"
+#include "pool.h"
+#include "pool.cpp"
 
 using namespace std;
 
@@ -13,6 +17,11 @@ GLFWwindow *window;
 **************************/
 
 Ball player;
+Ground ground[10];
+Pool pool[10];
+int grounds = 3;
+int pools = 2;
+
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 
@@ -50,27 +59,82 @@ void draw() {
     glm::mat4 MVP;  // MVP = Projection * View * Model
 
     // Scene render
+    pool[0].draw(VP);
+    pool[1].draw(VP);
+    ground[0].draw(VP);
+    ground[1].draw(VP);
+    ground[2].draw(VP);
     player.draw(VP);
 }
 
+glm::vec3 detectCollision(Ball player, Ground ground) {
+	if (ground.x <= player.position.x && player.position.x <= ground.y && player.position.y <= ground.h + PLAYER_SIZE)
+		return glm::vec3(0, 1, 0);
+	else if ((player.position.x - ground.x) * (player.position.x - ground.x) + (player.position.y - ground.h) * (player.position.y - ground.h) <= PLAYER_SIZE * PLAYER_SIZE)
+		return glm::normalize(glm::vec3((player.position.x - ground.x), (player.position.y - ground.h), 0));
+	else if ((player.position.x - ground.y) * (player.position.x - ground.y) + (player.position.y - ground.h) * (player.position.y - ground.h) <= PLAYER_SIZE * PLAYER_SIZE)
+        return glm::normalize(glm::vec3((player.position.x - ground.y), (player.position.y - ground.h), 0));
+    return glm::vec3(0, 0, -1);
+}
+
+glm::vec3 detectCollision(Ball player, Pool pool) {
+    if (player.position.y < ground[0].h + PLAYER_SIZE && player.position.x <= pool.position.x + pool.r - PLAYER_SIZE && pool.position.x - pool.r + PLAYER_SIZE <= player.position.x)
+        if ((player.position.x - pool.position.x) * (player.position.x - pool.position.x) + (player.position.y - pool.position.y) * (player.position.y - pool.position.y) >= (pool.r - PLAYER_SIZE) * (pool.r - PLAYER_SIZE))
+            return glm::normalize(glm::vec3((pool.position.x - player.position.x), (pool.position.y - player.position.y), 0));
+    return glm::vec3(0, 0, -1);
+}
+
 void tick_input(GLFWwindow *window) {
-    int left  = glfwGetKey(window, GLFW_KEY_A);
-    int right = glfwGetKey(window, GLFW_KEY_D);
-    // int zoom_in = 
-    if (left && !right)
+    int a = glfwGetKey(window, GLFW_KEY_A);
+    int d = glfwGetKey(window, GLFW_KEY_D);
+    int left  = glfwGetKey(window, GLFW_KEY_LEFT);
+    int right = glfwGetKey(window, GLFW_KEY_RIGHT);
+    if (a && !d)
     	player.move('l');
-    else if (right && !left)
+    else if (d && !a)
     	player.move('r');
     else
     	player.move('s');
+
+    if (left && !right) {
+        screen_center_x -= 0.1;
+        reset_screen();
+    }
+    else if (right && !left) {
+        screen_center_x += 0.1;
+        reset_screen();
+    }
 }
 
 void tick_elements() {
     player.tick();
-    // if (detect_collision(player.bounding_box(), ball2.bounding_box())) {
-    //     player.speed = -player.speed;
-    //     ball2.speed = -ball2.speed;
-    // }
+    int collided = 0;
+    glm::vec3 normal;
+    for (int i=0 ; i<grounds ; ++i) {
+	 	glm::vec3 ret = detectCollision(player, ground[i]);
+        if (ret.z == 0) {
+            player.position.y = max(player.position.y, -0.8f);
+            collided = 1;
+            normal = ret;
+        }
+    }
+
+    bool inside = (player.position.y < ground[0].h + PLAYER_SIZE);
+    if (!collided) {
+        for (int i=0 ; i<pools ; ++i) {
+            glm::vec3 ret = detectCollision(player, pool[i]);
+            if (ret.z == 0) {
+                player.position = pool[i].position - ((pool[i].r - PLAYER_SIZE) * ret);
+                collided = 1;
+                normal = ret;
+            }
+        }
+    }
+
+    player.inside = inside;
+
+    if (collided)
+        player.speed = glm::vec3(1, 0.3, 0) * glm::reflect(player.speed, normal);
 }
 
 /* Initialize the OpenGL rendering properties */
@@ -80,6 +144,11 @@ void initGL(GLFWwindow *window, int width, int height) {
     // Create the models
 
     player = Ball(0, 0, COLOR_RED);
+    ground[0] = Ground(-100, 90);
+    pool[0] = Pool(-10, 3);
+    ground[1] = Ground(-7, 10);
+    pool[1] = Pool(3, 4);
+    ground[2] = Ground(7, 100);
 
     // Create and compile our GLSL program from the shaders
     programID = LoadShaders("Sample_GL.vert", "Sample_GL.frag");
@@ -118,8 +187,8 @@ int main(int argc, char **argv) {
 
         if (t60.processTick()) {
             // 60 fps
-            // OpenGL Draw commands
             draw();
+            // OpenGL Draw commands
             // Swap Frame Buffer in double buffering
             glfwSwapBuffers(window);
 
@@ -140,6 +209,7 @@ bool detect_collision(bounding_box_t a, bounding_box_t b) {
 }
 
 void reset_screen() {
+
     float top    = screen_center_y + 4 / screen_zoom;
     float bottom = screen_center_y - 4 / screen_zoom;
     float left   = screen_center_x - 4 / screen_zoom;
@@ -149,5 +219,12 @@ void reset_screen() {
 
 bool jump() {
 	player.jump();
-	// cerr << "Jumping...";
+}
+
+void zoom(int yoffset) {
+    if (yoffset == 1)
+        screen_zoom = min(screen_zoom + 0.02, 1.1);
+    else if (yoffset == -1)
+        screen_zoom = max(screen_zoom - 0.02, 0.7);
+    reset_screen();
 }
