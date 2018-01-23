@@ -64,9 +64,6 @@ Pool::Pool(float start, float width) {
     this -> sand = create3DObject(GL_TRIANGLES, 6, sand_data, COLOR_RED, GL_FILL);
     this -> pool = create3DObject(GL_TRIANGLES, 3 * n, pool_data, COLOR_BACKGROUND, GL_FILL);
 
-    const float waterLeft = 0.1f;
-
-
     GLfloat water_data[3*3*n];
 
     float cover = 104.0f;
@@ -79,8 +76,8 @@ Pool::Pool(float start, float width) {
         for (int j=0 ; j<18 ; ++j)
             water_data[(i*18) + j] = 0.0f;
 
-		water_data[i*18 + 0]  = (waterH / Sin(offset - deg * i)) * Cos(offset - deg * i);
-		water_data[i*18 + 1]  = waterH;
+				water_data[i*18 + 0]  = (waterH / Sin(offset - deg * i)) * Cos(offset - deg * i);
+				water_data[i*18 + 1]  = waterH;
             
         water_data[i*18 + 3]  = r * Cos(offset - deg * i);
         water_data[i*18 + 4]  = r * Sin(offset - deg * i);
@@ -125,6 +122,4 @@ void Pool::tick() {
         this -> acceleration *= -1.0f;
 
     this -> flow += this -> acceleration;
-
-    cout << this -> flow << endl;
 }

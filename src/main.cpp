@@ -5,6 +5,8 @@
 #include "ground.cpp"
 #include "pool.h"
 #include "pool.cpp"
+#include "trampoline.h"
+#include "trampoline.cpp"
 
 using namespace std;
 
@@ -19,6 +21,7 @@ GLFWwindow *window;
 Ball player;
 Ground ground[10];
 Pool pool[10];
+Trampoline trampoline;
 int grounds = 3;
 int pools = 2;
 
@@ -64,6 +67,7 @@ void draw() {
 		ground[0].draw(VP);
 		ground[1].draw(VP);
 		ground[2].draw(VP);
+		trampoline.draw(VP);
 		player.draw(VP);
 }
 
@@ -150,6 +154,7 @@ void initGL(GLFWwindow *window, int width, int height) {
 		pool[0] = Pool(-10, 3);
 		ground[1] = Ground(-7, 10);
 		pool[1] = Pool(3, 4);
+		trampoline = Trampoline(7, 2);
 		ground[2] = Ground(7, 100);
 
 		// Create and compile our GLSL program from the shaders
