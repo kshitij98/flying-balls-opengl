@@ -2,11 +2,11 @@
 using namespace std;
 
 #include "main.h"
-#include "pool.h"
-
+#include "trampoline.h"
+// #include "helper.h"
+// #include "helper.cpp"
 
 // float yoffset;
-
 
 void rectangle(GLfloat arr[], float x1, float x2, float y1, float y2) {
     for (int j=0 ; j<18 ; ++j)

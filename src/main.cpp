@@ -7,6 +7,9 @@
 #include "pool.cpp"
 #include "trampoline.h"
 #include "trampoline.cpp"
+#include "spikes.h"
+#include "spikes.cpp"
+// #include "helper.cpp"
 
 using namespace std;
 
@@ -22,9 +25,13 @@ Ball player;
 Ground ground[10];
 Pool pool[10];
 Trampoline trampoline[10];
+Spikes spike[10];
+
 int grounds = 3;
 int pools = 2;
 int trampolines = 1;
+int spikes = 1;
+float eps = 0.3f;
 
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
@@ -63,12 +70,18 @@ void draw() {
 		glm::mat4 MVP;  // MVP = Projection * View * Model
 
 		// Scene render
-		pool[0].draw(VP);
-		pool[1].draw(VP);
-		ground[0].draw(VP);
-		ground[1].draw(VP);
-		ground[2].draw(VP);
-		trampoline[0].draw(VP);
+		for (int i=0 ; i<pools ; ++i)
+			pool[i].draw(VP);
+
+		for (int i=0 ; i<grounds ; ++i)
+			ground[i].draw(VP);
+
+		for (int i=0 ; i<trampolines ; ++i)
+			trampoline[i].draw(VP);
+
+		for (int i=0 ; i<spikes ; ++i)
+			spike[i].draw(VP);
+
 		player.draw(VP);
 }
 
@@ -90,7 +103,7 @@ glm::vec3 detectCollision(Ball player, Pool pool) {
 }
 
 glm::vec3 detectCollision(Ball player, Trampoline trampoline) {
-		if (player.speed.y <= 0 && trampoline.x <= player.position.x && player.position.x <= trampoline.y && player.position.y <= trampoline.h + PLAYER_SIZE)
+		if (player.speed.y <= 0 && trampoline.x <= player.position.x && player.position.x <= trampoline.y && player.position.y <= trampoline.h + PLAYER_SIZE && player.position.y >= trampoline.h + PLAYER_SIZE - eps)
 				return glm::vec3(0, 1, 0);
 		// else if ((player.position.x - ground.x) * (player.position.x - ground.x) + (player.position.y - ground.h) * (player.position.y - ground.h) <= PLAYER_SIZE * PLAYER_SIZE)
 		// 		return glm::normalize(glm::vec3((player.position.x - ground.x), (player.position.y - ground.h), 0));
@@ -123,8 +136,11 @@ void tick_input(GLFWwindow *window) {
 
 void tick_elements() {
 		player.tick();
-		pool[0].tick();
-		pool[1].tick();
+		for (int i=0 ; i<pools ; ++i)
+			pool[i].tick();
+
+		for (int i=0 ; i<spikes ; ++i)
+			spike[i].tick();
 		int collided = 0;
 		glm::vec3 normal;
 		for (int i=0 ; i<grounds ; ++i) {
@@ -178,8 +194,9 @@ void initGL(GLFWwindow *window, int width, int height) {
 		pool[0] = Pool(-10, 3);
 		ground[1] = Ground(-7, 10);
 		pool[1] = Pool(3, 4);
-		trampoline[0] = Trampoline(7, 2);
+		trampoline[0] = Trampoline(13, 2);
 		ground[2] = Ground(7, 100);
+		spike[0] = Spikes(7, 3, 4, 0.4f);
 
 		// Create and compile our GLSL program from the shaders
 		programID = LoadShaders("Sample_GL.vert", "Sample_GL.frag");
