@@ -11,6 +11,9 @@ public:
     glm::vec3 position;
     void draw(glm::mat4 VP);
     float r;
+    float h;
+    float x;
+    float y;
 private:
     VAO *grass;
     VAO *sand;

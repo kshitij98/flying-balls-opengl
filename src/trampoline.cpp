@@ -37,7 +37,10 @@ Trampoline::Trampoline(float start, float width) {
     float cover = 74.0f;
     float offset = -(180.0f-cover) / 2.0f;
     yoffset = r;
-    this -> position = glm::vec3(start + width/2.0, -1 + yoffset, 0);
+    this -> position = glm::vec3(start + half, -1 + yoffset, 0);
+
+    this -> x = start;
+    this -> y = start + width;
 
     const int n = 100;
 
@@ -46,6 +49,9 @@ Trampoline::Trampoline(float start, float width) {
     // 180 * 2 / n
     float deg = cover * 2.0 / n;
     float waterH = r * Sin(offset);
+
+    this -> h = -1 + yoffset + waterH;
+    
     for (int i=0 ; i<(n>>1) ; ++i) {
         for (int j=0 ; j<18 ; ++j)
             bed_data[(i*18) + j] = 0.0f;
@@ -73,8 +79,8 @@ Trampoline::Trampoline(float start, float width) {
 
     GLfloat poles_data[4*3*3];
 
-    rectangle(poles_data, -half, -half+0.3, -1, (-4.0/6.0) * r);
-    rectangle(poles_data + 18, half-0.3, half, -1, (-4.0/6.0) * r);
+    rectangle(poles_data, -half, -half+(0.1 * r), -r, (-4.0/5.0) * r);
+    rectangle(poles_data + 18, half-(0.1 * r), half, -r, (-4.0/5.0) * r);
 
     this -> poles = create3DObject(GL_TRIANGLES, 3 * n, poles_data, COLOR_BLACK, GL_FILL);
 }

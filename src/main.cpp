@@ -21,9 +21,10 @@ GLFWwindow *window;
 Ball player;
 Ground ground[10];
 Pool pool[10];
-Trampoline trampoline;
+Trampoline trampoline[10];
 int grounds = 3;
 int pools = 2;
+int trampolines = 1;
 
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
@@ -67,7 +68,7 @@ void draw() {
 		ground[0].draw(VP);
 		ground[1].draw(VP);
 		ground[2].draw(VP);
-		trampoline.draw(VP);
+		trampoline[0].draw(VP);
 		player.draw(VP);
 }
 
@@ -85,6 +86,16 @@ glm::vec3 detectCollision(Ball player, Pool pool) {
 		if (player.position.y < ground[0].h + PLAYER_SIZE && player.position.x <= pool.position.x + pool.r - PLAYER_SIZE && pool.position.x - pool.r + PLAYER_SIZE <= player.position.x)
 				if ((player.position.x - pool.position.x) * (player.position.x - pool.position.x) + (player.position.y - pool.position.y) * (player.position.y - pool.position.y) >= (pool.r - PLAYER_SIZE) * (pool.r - PLAYER_SIZE))
 						return glm::normalize(glm::vec3((pool.position.x - player.position.x), (pool.position.y - player.position.y), 0));
+		return glm::vec3(0, 0, -1);
+}
+
+glm::vec3 detectCollision(Ball player, Trampoline trampoline) {
+		if (player.speed.y <= 0 && trampoline.x <= player.position.x && player.position.x <= trampoline.y && player.position.y <= trampoline.h + PLAYER_SIZE)
+				return glm::vec3(0, 1, 0);
+		// else if ((player.position.x - ground.x) * (player.position.x - ground.x) + (player.position.y - ground.h) * (player.position.y - ground.h) <= PLAYER_SIZE * PLAYER_SIZE)
+		// 		return glm::normalize(glm::vec3((player.position.x - ground.x), (player.position.y - ground.h), 0));
+		// else if ((player.position.x - ground.y) * (player.position.x - ground.y) + (player.position.y - ground.h) * (player.position.y - ground.h) <= PLAYER_SIZE * PLAYER_SIZE)
+		// 		return glm::normalize(glm::vec3((player.position.x - ground.y), (player.position.y - ground.h), 0));
 		return glm::vec3(0, 0, -1);
 }
 
@@ -137,10 +148,23 @@ void tick_elements() {
 				}
 		}
 
+		glm::vec3 boost = glm::vec3(1, 1, 0);
+		if (!collided) {
+				for (int i=0 ; i<trampolines ; ++i) {
+						glm::vec3 ret = detectCollision(player, trampoline[i]);
+						if (ret.z == 0) {
+							player.position.y = max(player.position.y, trampoline[i].h);
+							collided = 1;
+							boost = glm::vec3(1, min(4.0f, -0.6f/player.speed.y), 0);
+							normal = ret;
+						}
+				}
+		}
+
 		player.inside = inside;
 
 		if (collided)
-				player.speed = glm::vec3(1, 0.3, 0) * glm::reflect(player.speed, normal);
+				player.speed = boost * glm::vec3(1, 0.3, 0) * glm::reflect(player.speed, normal);
 }
 
 /* Initialize the OpenGL rendering properties */
@@ -154,7 +178,7 @@ void initGL(GLFWwindow *window, int width, int height) {
 		pool[0] = Pool(-10, 3);
 		ground[1] = Ground(-7, 10);
 		pool[1] = Pool(3, 4);
-		trampoline = Trampoline(7, 2);
+		trampoline[0] = Trampoline(7, 2);
 		ground[2] = Ground(7, 100);
 
 		// Create and compile our GLSL program from the shaders
