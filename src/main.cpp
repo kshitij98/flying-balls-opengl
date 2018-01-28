@@ -32,7 +32,9 @@ int pools = 2;
 int trampolines = 1;
 int spikes = 1;
 float eps = 0.3f;
-
+int spikecnt;
+int SPIKE_TIME = 120;
+int spikeTime;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 
@@ -112,6 +114,15 @@ glm::vec3 detectCollision(Ball player, Trampoline trampoline) {
 		return glm::vec3(0, 0, -1);
 }
 
+glm::vec3 detectCollision(Ball player, Spikes spike) {
+		if (player.speed.y <= 0 && spike.position.x <= player.position.x && player.position.x <= spike.position.x + spike.width && player.position.y - spike.position.y <= spike.h + PLAYER_SIZE && player.position.y - spike.position.y >= spike.h + PLAYER_SIZE - 0.1f) {
+				// cerr << "SPIKE!" << endl;	
+				return glm::vec3(0, 1, 0);
+		}
+		return glm::vec3(0, 0, -1);
+}
+
+
 void tick_input(GLFWwindow *window) {
 		int a = glfwGetKey(window, GLFW_KEY_A);
 		int d = glfwGetKey(window, GLFW_KEY_D);
@@ -177,6 +188,29 @@ void tick_elements() {
 				}
 		}
 
+		int spiked = 0;
+		if (!collided) {
+				for (int i=0 ; i<spikes ; ++i) {
+						glm::vec3 ret = detectCollision(player, spike[i]);
+						if (ret.z == 0) {
+							// player.position.y = max(player.position.y, trampoline[i].h);
+							collided = 1;
+							spiked = 1;
+							// boost = glm::vec3(1, min(4.0f, -0.6f/player.speed.y), 0);
+							normal = ret;
+						}
+				}
+		}
+
+		if (spiked && spikeTime == 0) {
+			spikeTime = SPIKE_TIME;
+			// spiked();
+			cerr << "SPIKE! " << spikecnt++;
+		}
+		else if (spikeTime)
+			spikeTime--;
+
+
 		player.inside = inside;
 
 		if (collided)
@@ -187,6 +221,10 @@ void tick_elements() {
 /* Add all the models to be created here */
 void initGL(GLFWwindow *window, int width, int height) {
 		/* Objects should be created before any other gl function and shaders */
+
+		// Initialise State
+		spikecnt = 1;
+
 		// Create the models
 
 		player = Ball(0, 0, COLOR_RED);
