@@ -11,6 +11,8 @@
 #include "spikes.cpp"
 #include "enemy.cpp"
 #include "enemy.h"
+#include "magnet.cpp"
+#include "magnet.h"
 // #include "helper.cpp"
 
 using namespace std;
@@ -29,6 +31,7 @@ Pool pool[10];
 Trampoline trampoline[10];
 Spikes spike[10];
 Enemy ball[10];
+Magnet magnet;
 
 int grounds = 3;
 int pools = 2;
@@ -76,20 +79,22 @@ void draw() {
 		glm::mat4 MVP;  // MVP = Projection * View * Model
 
 		// Scene render
+		for (int i=0 ; i<1 ; ++i)
+			ball[i].draw(VP);
+
 		for (int i=0 ; i<pools ; ++i)
 			pool[i].draw(VP);
 
 		for (int i=0 ; i<grounds ; ++i)
 			ground[i].draw(VP);
 
+		magnet.draw(initVP);
+		
 		for (int i=0 ; i<trampolines ; ++i)
 			trampoline[i].draw(VP);
 
 		for (int i=0 ; i<spikes ; ++i)
 			spike[i].draw(VP);
-
-		for (int i=0 ; i<1 ; ++i)
-			ball[i].draw(VP);
 
 		player.draw(VP);
 
@@ -265,6 +270,8 @@ void initGL(GLFWwindow *window, int width, int height) {
 		trampoline[0] = Trampoline(13, 2);
 		ground[2] = Ground(7, 100);
 		spike[0] = Spikes(7, 3, 4, 0.4f);
+		magnet = Magnet(-1);
+
 
 		for (int i=0 ; i<1 ; ++i) {
 			ball[i] = Enemy(-4, 0 + i * 1.0f, COLOR_RED, 0.2, 0.00 + (float)i * 0.003f, 1, 30.0f);
