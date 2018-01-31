@@ -9,6 +9,8 @@
 #include "trampoline.cpp"
 #include "spikes.h"
 #include "spikes.cpp"
+#include "enemy.cpp"
+#include "enemy.h"
 // #include "helper.cpp"
 
 using namespace std;
@@ -26,6 +28,7 @@ Ground ground[10];
 Pool pool[10];
 Trampoline trampoline[10];
 Spikes spike[10];
+Enemy ball[10];
 
 int grounds = 3;
 int pools = 2;
@@ -35,6 +38,7 @@ float eps = 0.3f;
 int spikecnt;
 int SPIKE_TIME = 120;
 int spikeTime;
+glm::mat4 initVP;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 
@@ -84,11 +88,16 @@ void draw() {
 		for (int i=0 ; i<spikes ; ++i)
 			spike[i].draw(VP);
 
+		for (int i=0 ; i<1 ; ++i)
+			ball[i].draw(VP);
+
 		player.draw(VP);
+
+		// magnet.draw(initVP);
 }
 
 glm::vec3 detectCollision(Ball player, Ground ground) {
-		if (ground.x <= player.position.x && player.position.x <= ground.y && player.position.y <= ground.h + PLAYER_SIZE)
+		if (ground.x <= player.position.x && player.position.x <= ground.y && abs(player.position.y - PLAYER_SIZE + 1) < abs(player.speed.y))
 				return glm::vec3(0, 1, 0);
 		else if ((player.position.x - ground.x) * (player.position.x - ground.x) + (player.position.y - ground.h) * (player.position.y - ground.h) <= PLAYER_SIZE * PLAYER_SIZE)
 				return glm::normalize(glm::vec3((player.position.x - ground.x), (player.position.y - ground.h), 0));
@@ -105,7 +114,7 @@ glm::vec3 detectCollision(Ball player, Pool pool) {
 }
 
 glm::vec3 detectCollision(Ball player, Trampoline trampoline) {
-		if (player.speed.y <= 0 && trampoline.x <= player.position.x && player.position.x <= trampoline.y && player.position.y <= trampoline.h + PLAYER_SIZE && player.position.y >= trampoline.h + PLAYER_SIZE - eps)
+		if (player.speed.y <= 0 && trampoline.x <= player.position.x && player.position.x <= trampoline.y && abs(player.position.y - PLAYER_SIZE - trampoline.h) < abs(player.speed.y))
 				return glm::vec3(0, 1, 0);
 		// else if ((player.position.x - ground.x) * (player.position.x - ground.x) + (player.position.y - ground.h) * (player.position.y - ground.h) <= PLAYER_SIZE * PLAYER_SIZE)
 		// 		return glm::normalize(glm::vec3((player.position.x - ground.x), (player.position.y - ground.h), 0));
@@ -115,7 +124,7 @@ glm::vec3 detectCollision(Ball player, Trampoline trampoline) {
 }
 
 glm::vec3 detectCollision(Ball player, Spikes spike) {
-		if (player.speed.y <= 0 && spike.position.x <= player.position.x && player.position.x <= spike.position.x + spike.width && player.position.y - spike.position.y <= spike.h + PLAYER_SIZE && player.position.y - spike.position.y >= spike.h + PLAYER_SIZE - 0.1f) {
+		if (player.speed.y <= 0 && spike.position.x <= player.position.x && player.position.x <= spike.position.x + spike.width && abs((player.position.y - PLAYER_SIZE) - (spike.position.y + spike.h)) < abs(player.speed.y)) {
 				// cerr << "SPIKE!" << endl;	
 				return glm::vec3(0, 1, 0);
 		}
@@ -136,11 +145,11 @@ void tick_input(GLFWwindow *window) {
 			player.move('s');
 
 		if (left && !right) {
-				screen_center_x -= 0.1;
+				screen_center_x -= 0.02;
 				reset_screen();
 		}
 		else if (right && !left) {
-				screen_center_x += 0.1;
+				screen_center_x += 0.02;
 				reset_screen();
 		}
 }
@@ -150,8 +159,12 @@ void tick_elements() {
 		for (int i=0 ; i<pools ; ++i)
 			pool[i].tick();
 
+		for (int i=0 ; i<1 ; ++i)
+			ball[i].tick();
+
 		for (int i=0 ; i<spikes ; ++i)
 			spike[i].tick();
+
 		int collided = 0;
 		glm::vec3 normal;
 		for (int i=0 ; i<grounds ; ++i) {
@@ -211,6 +224,21 @@ void tick_elements() {
 			spikeTime--;
 
 
+		if (!collided) {
+				for (int i=0 ; i<1 ; ++i) {
+						glm::vec3 ret = ball[i].detectCollision(player.position, 0.2f, player.speed);
+						if (ret.z == 0) {
+							cerr << "HIT!" << endl;
+							// player.position.y = max(player.position.y, trampoline[i].h);
+							collided = 1;
+							// spiked = 1;
+							boost = glm::vec3(1, 1.0/0.3f, 0);
+							normal = ret;
+						}
+				}
+
+		}
+
 		player.inside = inside;
 
 		if (collided)
@@ -225,6 +253,8 @@ void initGL(GLFWwindow *window, int width, int height) {
 		// Initialise State
 		spikecnt = 1;
 
+		initVP = Matrices.projection * Matrices.view;
+
 		// Create the models
 
 		player = Ball(0, 0, COLOR_RED);
@@ -235,6 +265,10 @@ void initGL(GLFWwindow *window, int width, int height) {
 		trampoline[0] = Trampoline(13, 2);
 		ground[2] = Ground(7, 100);
 		spike[0] = Spikes(7, 3, 4, 0.4f);
+
+		for (int i=0 ; i<1 ; ++i) {
+			ball[i] = Enemy(-4, 0 + i * 1.0f, COLOR_RED, 0.2, 0.00 + (float)i * 0.003f, 1, 30.0f);
+		}
 
 		// Create and compile our GLSL program from the shaders
 		programID = LoadShaders("Sample_GL.vert", "Sample_GL.frag");
