@@ -22,8 +22,8 @@ Ball player;
 Ground ground[10];
 Pool pool[10];
 Trampoline trampoline[10];
-Spikes spike[10];
-Enemy ball[10];
+Spikes spike[3];
+Enemy ball[100];
 Magnet magnet;
 
 // float eps = 0.3f;
@@ -47,6 +47,18 @@ int grounds = 3;
 int pools = 2;
 int trampolines = 1;
 int spikes = 1;
+int plankProb;
+
+int ball_ratio[] = {5, 2, 2};
+// 5 2 2
+// 4 2 2
+// 3 2 2
+// 2 2 2 
+// 1 1 2
+// 1 1 3
+// 1 1 4
+// 1 1 5
+
 
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
@@ -135,6 +147,41 @@ glm::vec3 detectCollision(Ball player, Spikes spike) {
 		return glm::vec3(0, 0, -1);
 }
 
+// ground
+// pool
+// porc
+//// magnet
+
+// speeds...
+
+// 1 0 0 1 0
+// 2 1 0 1 5
+// 2 1 1 1 10
+// 2 1 2 1 15
+
+void level_up(int newLevel) {
+	level = newLevel;
+
+	if (level > 3)
+		ACTIVE_TIME = 300;
+	else {
+		magnetActive = 0;
+		ACTIVE_TIME = 1;
+	}
+
+	grounds = (level <= 1 ? 1 : 2);
+	pools = (level <= 1 ? 0 : 1);
+	spikes = (level > 3 ? 2 : 0);
+	if (level == 3)	spikes = 1;
+	plankProb = min((level - 1) * 5, 80);
+
+
+	points = 0;
+	goal = 200 + (level*50);
+	ball_ratio[0] = max(6 - level, 1);
+	ball_ratio[1] = (level >= 5 ? 1 : 2);
+	ball_ratio[2] = max(level - 3, 2);
+}
 
 // void tick_level() {
 
@@ -175,7 +222,7 @@ void tick_elements() {
 		if (cttimer == 0)
 			magnet.changeDir(-1 * magnet.direction);
 
-		if (activetimer == 0)
+		if (activetimer == 1)
 			magnetActive ^= 1;
 
 		player.tick();
@@ -290,6 +337,10 @@ void initGL(GLFWwindow *window, int width, int height) {
 
 		// Initialise State
 		spikecnt = 1;
+		level = 1;
+		points = 0;
+		goal = 250;
+		ACTIVE_TIME = 1;
 
 		initVP = Matrices.projection * Matrices.view;
 
@@ -382,10 +433,16 @@ bool jump() {
 	}
 }
 
-void zoom(int yoffset) {
+void scroll(int xoffset, int yoffset) {
 		if (yoffset == 1)
 				screen_zoom = min(screen_zoom + 0.02, 1.1);
 		else if (yoffset == -1)
 				screen_zoom = max(screen_zoom - 0.02, 0.7);
+		if (xoffset == 1)
+			screen_center_x = max((float)screen_center_x - 0.02f, player.position.x - 2);
+		else if (xoffset == -1)
+			screen_center_x = min((float)screen_center_x + 0.02f, player.position.x + 2);
+
+
 		reset_screen();
 }

@@ -77,7 +77,7 @@ struct bounding_box_t {
 
 bool detect_collision(bounding_box_t a, bounding_box_t b);
 bool jump();
-void zoom(int yoffset);
+void scroll(int xoffset, int yoffset);
 
 extern float screen_zoom, screen_center_x, screen_center_y;
 void reset_screen();
