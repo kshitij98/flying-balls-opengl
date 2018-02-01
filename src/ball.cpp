@@ -12,10 +12,6 @@ Ball::Ball(float x, float y, color_t color) {
     this -> max_speed = 0.05f;
     this -> directionX = 0;
     this -> inside = false;
-
-    // speed = 0;
-    // gravity = 0.004;
-
     this -> speed = glm::vec3(0, 0, 0);
 
     const int n = 30;
@@ -42,12 +38,10 @@ void Ball::set_position(float x, float y) {
 }
 
 void Ball::tick() {
-    glm::vec3 damp = (this -> inside ? glm::vec3(0.2, 0.2, 0) : glm::vec3(1, 1, 0));
+    glm::vec3 damp = (this -> inside ? glm::vec3(0.5, 0.5, 0) : glm::vec3(1, 1, 0));
     this -> position += damp * speed;
     this -> directionX = speed.x != 0.0 ? ((speed.x > 0) ? 1 : -1) : 0;
     speed.y -= gravity;
-
-    // this->position.y -= speed;
 }
 
 bounding_box_t Ball::bounding_box() {
@@ -70,6 +64,5 @@ void Ball::move(char direction, float acc) {
 }
 
 void Ball::jump() {
-	// TODO: If lower half is colliding with floor, or something...
 	speed.y = 0.1;
 }

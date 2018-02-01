@@ -43,5 +43,4 @@ void pie(GLfloat arr[], float r, int n, float offset, float deg) {
         arr[i*9 + 6] = r * Cos(offset + deg * (i+1));
         arr[i*9 + 7] = r * Sin(offset + deg * (i+1));
     }
-
 }

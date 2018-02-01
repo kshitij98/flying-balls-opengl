@@ -2,18 +2,11 @@
 #include "timer.h"
 #include "ball.h"
 #include "ground.h"
-// #include "ground.cpp"
 #include "pool.h"
-// #include "pool.cpp"
 #include "trampoline.h"
-// #include "trampoline.cpp"
 #include "spikes.h"
-// #include "spikes.cpp"
-// #include "enemy.cpp"
 #include "enemy.h"
-// #include "magnet.cpp"
 #include "magnet.h"
-// #include "helper.cpp"
 
 using namespace std;
 
@@ -33,11 +26,7 @@ Spikes spike[10];
 Enemy ball[10];
 Magnet magnet;
 
-int grounds = 3;
-int pools = 2;
-int trampolines = 1;
-int spikes = 1;
-float eps = 0.3f;
+// float eps = 0.3f;
 int spikecnt;
 int SPIKE_TIME = 120;
 int spikeTime;
@@ -48,6 +37,17 @@ int CHANGE_TIME = 600;
 int ACTIVE_TIME = 300;
 int cttimer;
 int activetimer;
+int jumps;
+int MAX_JUMPS = 2;
+int level;
+int points;
+int goal;
+int timeLeft;
+int grounds = 3;
+int pools = 2;
+int trampolines = 1;
+int spikes = 1;
+
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 
@@ -94,7 +94,6 @@ void draw() {
 		for (int i=0 ; i<grounds ; ++i)
 			ground[i].draw(VP);
 
-		// magnet.changeDir(1);
 		if (magnetActive)
 			magnet.draw(initVP);
 		
@@ -105,8 +104,6 @@ void draw() {
 			spike[i].draw(VP);
 
 		player.draw(VP);
-
-		// magnet.draw(initVP);
 }
 
 glm::vec3 detectCollision(Ball player, Ground ground) {
@@ -129,21 +126,19 @@ glm::vec3 detectCollision(Ball player, Pool pool) {
 glm::vec3 detectCollision(Ball player, Trampoline trampoline) {
 		if (player.speed.y <= 0 && trampoline.x <= player.position.x && player.position.x <= trampoline.y && abs(player.position.y - PLAYER_SIZE - trampoline.h) < abs(player.speed.y))
 				return glm::vec3(0, 1, 0);
-		// else if ((player.position.x - ground.x) * (player.position.x - ground.x) + (player.position.y - ground.h) * (player.position.y - ground.h) <= PLAYER_SIZE * PLAYER_SIZE)
-		// 		return glm::normalize(glm::vec3((player.position.x - ground.x), (player.position.y - ground.h), 0));
-		// else if ((player.position.x - ground.y) * (player.position.x - ground.y) + (player.position.y - ground.h) * (player.position.y - ground.h) <= PLAYER_SIZE * PLAYER_SIZE)
-		// 		return glm::normalize(glm::vec3((player.position.x - ground.y), (player.position.y - ground.h), 0));
 		return glm::vec3(0, 0, -1);
 }
 
 glm::vec3 detectCollision(Ball player, Spikes spike) {
-		if (player.speed.y <= 0 && spike.position.x <= player.position.x && player.position.x <= spike.position.x + spike.width && abs((player.position.y - PLAYER_SIZE) - (spike.position.y + spike.h)) < abs(player.speed.y)) {
-				// cerr << "SPIKE!" << endl;	
+		if (player.speed.y <= 0 && spike.position.x <= player.position.x && player.position.x <= spike.position.x + spike.width && abs((player.position.y - PLAYER_SIZE) - (spike.position.y + spike.h)) < abs(player.speed.y))
 				return glm::vec3(0, 1, 0);
-		}
 		return glm::vec3(0, 0, -1);
 }
 
+
+// void tick_level() {
+
+// }
 
 void tick_input(GLFWwindow *window) {
 		int a = glfwGetKey(window, GLFW_KEY_A);
@@ -163,14 +158,14 @@ void tick_input(GLFWwindow *window) {
 		else
 			player.move('s', 0.004f);
 
-		if (left && !right) {
-				screen_center_x -= 0.02;
-				reset_screen();
-		}
-		else if (right && !left) {
-				screen_center_x += 0.02;
-				reset_screen();
-		}
+		screen_center_x = max((float)screen_center_x, player.position.x - 2);
+		screen_center_x = min((float)screen_center_x, player.position.x + 2);
+
+		if (left && !right)
+				screen_center_x = max((float)screen_center_x - 0.02f, player.position.x - 2);
+		else if (right && !left)
+				screen_center_x = min((float)screen_center_x + 0.02f, player.position.x + 2);
+		reset_screen();
 }
 
 void tick_elements() {
@@ -267,14 +262,25 @@ void tick_elements() {
 
 		}
 
+		if (player.inside && !inside)
+			player.speed = glm::vec3(0.5, 0.5, 0) * player.speed;
+
 		player.inside = inside;
 
+		if (inside)
+			jumps = 0;
+		else
+			jumps = max(jumps, 1);
+
 		if (collided) {
+			jumps = 0;
 			if (inside)
 				player.speed = glm::reflect(player.speed, normal) - 0.9f * glm::dot(-player.speed, normal) * normal;
 			else
 				player.speed = boost * glm::vec3(1, 0.3, 0) * glm::reflect(player.speed, normal);
 		}
+		else
+			jumps = max(jumps, 1);
 }
 
 /* Initialize the OpenGL rendering properties */
@@ -370,7 +376,10 @@ void reset_screen() {
 }
 
 bool jump() {
-	player.jump();
+	if (jumps < MAX_JUMPS) {
+		jumps++;
+		player.jump();
+	}
 }
 
 void zoom(int yoffset) {
