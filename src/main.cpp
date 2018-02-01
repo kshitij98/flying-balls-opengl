@@ -48,6 +48,8 @@ int pools = 2;
 int trampolines = 1;
 int spikes = 1;
 int plankProb;
+bool dragging;
+double posX, posY;
 
 int ball_ratio[] = {5, 2, 2};
 // 5 2 2
@@ -188,10 +190,17 @@ void level_up(int newLevel) {
 // }
 
 void tick_input(GLFWwindow *window) {
-		int a = glfwGetKey(window, GLFW_KEY_A);
-		int d = glfwGetKey(window, GLFW_KEY_D);
+		double currX, currY;
+		glfwGetCursorPos(window, &currX, &currY);
+
+		int a = glfwGetKey(window, GLFW_KEY_A) || (dragging && currX - posX < -70);
+		int d = glfwGetKey(window, GLFW_KEY_D) || (dragging && currX - posX > 70);
 		int left  = glfwGetKey(window, GLFW_KEY_LEFT);
 		int right = glfwGetKey(window, GLFW_KEY_RIGHT);
+
+		if (dragging && posY - currY > 70)
+			jump();
+
 		if (a && !d)
 			player.move('l', 0.004f);
 		else if (d && !a)
@@ -417,6 +426,13 @@ int main(int argc, char **argv) {
 
 		quit(window);
 }
+
+void setInitialMousePos(double xpos, double ypos, bool clicked) {
+	posX = xpos;
+	posY = ypos;
+	dragging = clicked;
+}
+
 
 void reset_screen() {
 		float top    = screen_center_y + 4 / screen_zoom;

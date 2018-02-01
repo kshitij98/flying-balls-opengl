@@ -64,12 +64,19 @@ void keyboardChar(GLFWwindow *window, unsigned int key) {
 
 /* Executed when a mouse button is pressed/released */
 void mouseButton(GLFWwindow *window, int button, int action, int mods) {
+    double xpos, ypos;
     switch (button) {
     case GLFW_MOUSE_BUTTON_LEFT:
         if (action == GLFW_PRESS) {
+            glfwGetCursorPos(window, &xpos, &ypos);
+            setInitialMousePos(xpos, ypos, true);
+            // cerr << xpos << ' ' << ypos << endl;
             // Do something
             return;
         } else if (action == GLFW_RELEASE) {
+            setInitialMousePos(xpos, ypos, false);
+            // glfwGetCursorPos(window, &xpos, &ypos);
+            // cerr << xpos << ' ' << ypos << endl;
             // Do something
         }
         break;
