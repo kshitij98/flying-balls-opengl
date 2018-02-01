@@ -154,6 +154,12 @@ void tick_input(GLFWwindow *window) {
 			player.move('l', 0.004f);
 		else if (d && !a)
 			player.move('r', 0.004f);
+		else if (magnetActive) {
+			if (magnet.direction == 1)
+				player.move('r', 0.001f);
+			else
+				player.move('l', 0.001f);
+		}
 		else
 			player.move('s', 0.004f);
 
@@ -265,13 +271,6 @@ void tick_elements() {
 
 		if (collided)
 				player.speed = boost * glm::vec3(1, 0.3, 0) * glm::reflect(player.speed, normal);
-
-		if (magnetActive) {
-			if (magnet.direction == 1)
-				player.move('r', 0.0035f);
-			else
-				player.move('l', 0.0035f);
-		}
 }
 
 /* Initialize the OpenGL rendering properties */
