@@ -3,15 +3,7 @@ using namespace std;
 
 #include "main.h"
 #include "pool.h"
-
-
-inline float Cos(float x) {
-    return cos((x * M_PI) / 180.f);
-}
-
-inline float Sin(float x) {
-    return sin((x * M_PI) / 180.f);
-}
+#include "helper.h"
 
 float yoffset;
 
@@ -23,54 +15,27 @@ Pool::Pool(float start, float width) {
     const float half = width / 2.0f;
     yoffset = ((3.0f * width) / 8.0f);
     this -> position = glm::vec3(start + width/2.0, -1 + yoffset, 0);
+    float cover = 104.0f;
+    float offset = -(180.0f-cover) / 2.0f;
 
-    const GLfloat grass_data[] = {
-        -half, -yoffset, 0, // vertex 1
-        half, -yoffset, 0, // vertex 2
-        half, -20, 0, // vertex 3
+    GLfloat grass_data[18];
+    rectangle(grass_data, -half, half, -20, -yoffset);
 
-        half, -20, 0, // vertex 3
-        -half, -20, 0, // vertex 4
-        -half, -yoffset, 0  // vertex 1
-    };
-
-    const GLfloat sand_data[] = {
-        -half, 0 - 0.2 - yoffset, 0, // vertex 1
-        half, 0 - 0.2 - yoffset, 0, // vertex 2
-        half, -20, 0, // vertex 3
-
-        half, -20, 0, // vertex 3
-        -half, -20, 0, // vertex 4
-        -half, 0 - 0.2 - yoffset, 0  // vertex 1
-    };
+    GLfloat sand_data[18];
+    rectangle(sand_data, -half, half, -20, -yoffset-0.2f);
 
     const int n = 1000;
-
     GLfloat pool_data[3*3*n];
-
-    float deg = 360.0 / n;
-    for (int i=0 ; i<n ; ++i) {
-        for (int j=0 ; j<9 ; ++j)
-            pool_data[(i*9) + j] = 0.0f;
-
-        pool_data[i*9 + 3] = r * Cos(deg * i);
-        pool_data[i*9 + 4] = r * Sin(deg * i);
-
-        pool_data[i*9 + 6] = r * Cos(deg * (i+1));
-        pool_data[i*9 + 7] = r * Sin(deg * (i+1));
-    }
+    pie(pool_data, r, n, offset-cover-1, cover+2);
 
     this -> grass = create3DObject(GL_TRIANGLES, 6, grass_data, COLOR_GREEN, GL_FILL);
     this -> sand = create3DObject(GL_TRIANGLES, 6, sand_data, COLOR_RED, GL_FILL);
     this -> pool = create3DObject(GL_TRIANGLES, 3 * n, pool_data, COLOR_BACKGROUND, GL_FILL);
 
     GLfloat water_data[3*3*n];
-
-    float cover = 104.0f;
-    float offset = -(180.0f-cover) / 2.0f;
-
+    
     // 180 * 2 / n
-    deg = cover * 2.0 / n;
+    float deg = cover * 2.0 / n;
     float waterH = r * Sin(offset);
     for (int i=0 ; i<(n>>1) ; ++i) {
         for (int j=0 ; j<18 ; ++j)

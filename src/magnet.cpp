@@ -3,25 +3,11 @@ using namespace std;
 
 #include "magnet.h"
 #include "main.h"
+#include "helper.h"
 
-
-void magnet_stick(GLfloat arr[], float x1, float x2, float y1, float y2) {
-    for (int i=0 ; i<36 ; ++i)
-        arr[i] = 0;
-
-    arr[0] = x1; arr[1] = y2;
-    arr[3] = x1; arr[4] = y1;
-    arr[6] = x2; arr[7] = y1;
-    arr[9] = x1; arr[10] = y2;
-    arr[12] = x2; arr[13] = y2;
-    arr[15] = x2; arr[16] = y1;
-
-    arr[18] = x1; arr[19] = -y2;
-    arr[21] = x1; arr[22] = -y1;
-    arr[24] = x2; arr[25] = -y1;
-    arr[27] = x1; arr[28] = -y2;
-    arr[30] = x2; arr[31] = -y2;
-    arr[33] = x2; arr[34] = -y1;
+inline void magnet_stick(GLfloat arr[], float x1, float x2, float y1, float y2) {
+    rectangle(arr, x1, x2, y1, y2);
+    rectangle(arr+18, x1, x2, -y1, -y2);
 }
 
 Magnet::Magnet(float power) {
@@ -41,31 +27,10 @@ Magnet::Magnet(float power) {
     float r = 0.1f;  
     float offset = -90.0f;
 
-    for (int i=0 ; i<n ; ++i) {
-        for (int j=0 ; j<9 ; ++j)
-            magnet_data[(i*9) + j] = 0.0f;
-
-        magnet_data[i*9 + 3] = r * cos(((offset + deg * i) * M_PI) / 180.0);
-        magnet_data[i*9 + 4] = r * sin(((offset + deg * i) * M_PI) / 180.0);
-
-        magnet_data[i*9 + 6] = r * cos(((offset + deg * (i+1)) * M_PI) / 180.0);
-        magnet_data[i*9 + 7] = r * sin(((offset + deg * (i+1)) * M_PI) / 180.0);
-    }
-
+    pie(magnet_data, r, n, offset, 180);
     magnet_stick(magnet_data + 9*n, -r, 0.0f, (1.0f - thick) * r, r);
     magnet_stick(black_data, -r, -0.5f * r, (1.0f - thick) * r, r);
-
-    for (int i=0 ; i<n ; ++i) {
-        for (int j=0 ; j<9 ; ++j)
-            cavity_data[(i*9) + j] = 0.0f;
-
-        cavity_data[i*9 + 3] = (1.0f - thick) * r * cos(((offset + deg * i) * M_PI) / 180.0);
-        cavity_data[i*9 + 4] = (1.0f - thick) * r * sin(((offset + deg * i) * M_PI) / 180.0);
-
-        cavity_data[i*9 + 6] = (1.0f - thick) * r * cos(((offset + deg * (i+1)) * M_PI) / 180.0);
-        cavity_data[i*9 + 7] = (1.0f - thick) * r * sin(((offset + deg * (i+1)) * M_PI) / 180.0);
-    }
-    float border = 0.01f;
+    pie(cavity_data, (1.0f - thick) * r, n, offset, 180);
 
     this -> magnet = create3DObject(GL_TRIANGLES, 3*(n+4), magnet_data, COLOR_RED, GL_FILL);
     this -> black = create3DObject(GL_TRIANGLES, 3*4, black_data, COLOR_BLACK, GL_FILL);

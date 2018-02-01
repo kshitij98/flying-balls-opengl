@@ -3,6 +3,7 @@ using namespace std;
 
 #include "main.h"
 #include "ground.h"
+#include "helper.h"
 
 
 Ground::Ground(float start, float width) {
@@ -13,27 +14,11 @@ Ground::Ground(float start, float width) {
 		this -> h = -1;
     this -> position = glm::vec3(start + r, 0, 0);
 
-    cerr << this -> x << ' ' << this -> y << endl;
+    GLfloat vertex_buffer_data[18];
+    rectangle(vertex_buffer_data, -r, r, -1, -20);
 
-    GLfloat vertex_buffer_data[] = {
-        -r, -1, 0, // vertex 1
-        r, -1, 0, // vertex 2
-        r, -20, 0, // vertex 3
-
-        r, -20, 0, // vertex 3
-        -r, -20, 0, // vertex 4
-        -r, -1, 0  // vertex 1
-    };
-
-    GLfloat vertex_buffer_data2[] = {
-        -r, -1 - 0.2, 0, // vertex 1
-        r, -1 - 0.2, 0, // vertex 2
-        r, -20, 0, // vertex 3
-
-        r, -20, 0, // vertex 3
-        -r, -20, 0, // vertex 4
-        -r, -1 - 0.2, 0  // vertex 1
-    };
+    GLfloat vertex_buffer_data2[18];
+    rectangle(vertex_buffer_data2, -r, r, -1.2, -20);
 
     this -> grass = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, COLOR_GREEN, GL_FILL);
     this -> sand = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data2, COLOR_RED, GL_FILL);

@@ -3,6 +3,7 @@ using namespace std;
 
 #include "ball.h"
 #include "main.h"
+#include "helper.h"
 
 
 Ball::Ball(float x, float y, color_t color) {
@@ -20,19 +21,7 @@ Ball::Ball(float x, float y, color_t color) {
     const int n = 30;
 
     GLfloat ball_data[3*3*n];
-
-    float deg = 360.0 / n;
-    float r = 0.2;
-    for (int i=0 ; i<n ; ++i) {
-        for (int j=0 ; j<9 ; ++j)
-            ball_data[(i*9) + j] = 0.0f;
-
-        ball_data[i*9 + 3] = r * cos((deg * i * M_PI) / 180.0);
-        ball_data[i*9 + 4] = r * sin((deg * i * M_PI) / 180.0);
-
-        ball_data[i*9 + 6] = r * cos((deg * (i+1) * M_PI) / 180.0);
-        ball_data[i*9 + 7] = r * sin((deg * (i+1) * M_PI) / 180.0);
-    }
+    pie(ball_data, 0.2, n, 0, 360);
 
     this -> object = create3DObject(GL_TRIANGLES, 3*n, ball_data, color, GL_FILL);
 }

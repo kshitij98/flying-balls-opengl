@@ -2,16 +2,16 @@
 #include "timer.h"
 #include "ball.h"
 #include "ground.h"
-#include "ground.cpp"
+// #include "ground.cpp"
 #include "pool.h"
-#include "pool.cpp"
+// #include "pool.cpp"
 #include "trampoline.h"
-#include "trampoline.cpp"
+// #include "trampoline.cpp"
 #include "spikes.h"
-#include "spikes.cpp"
-#include "enemy.cpp"
+// #include "spikes.cpp"
+// #include "enemy.cpp"
 #include "enemy.h"
-#include "magnet.cpp"
+// #include "magnet.cpp"
 #include "magnet.h"
 // #include "helper.cpp"
 
@@ -269,8 +269,12 @@ void tick_elements() {
 
 		player.inside = inside;
 
-		if (collided)
+		if (collided) {
+			if (inside)
+				player.speed = glm::reflect(player.speed, normal) - 0.9f * glm::dot(-player.speed, normal) * normal;
+			else
 				player.speed = boost * glm::vec3(1, 0.3, 0) * glm::reflect(player.speed, normal);
+		}
 }
 
 /* Initialize the OpenGL rendering properties */
@@ -297,7 +301,7 @@ void initGL(GLFWwindow *window, int width, int height) {
 
 
 		for (int i=0 ; i<1 ; ++i) {
-			ball[i] = Enemy(-4, 0 + i * 1.0f, COLOR_RED, 0.2, 0.00 + (float)i * 0.003f, 1, 30.0f);
+			ball[i] = Enemy(-4, 0 + i * 1.0f, COLOR_RED, 0.2, 0.00 + (float)i * 0.003f, 0, 30.0f);
 		}
 
 		// Create and compile our GLSL program from the shaders

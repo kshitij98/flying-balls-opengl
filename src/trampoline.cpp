@@ -3,40 +3,17 @@ using namespace std;
 
 #include "main.h"
 #include "trampoline.h"
-// #include "helper.h"
+#include "helper.h"
 // #include "helper.cpp"
 
 // float yoffset;
-
-void rectangle(GLfloat arr[], float x1, float x2, float y1, float y2) {
-    for (int j=0 ; j<18 ; ++j)
-        arr[j] = 0.0f;
-
-    arr[0]  = x1;
-    arr[1]  = y1;
-            
-    arr[3]  = x2;
-    arr[4]  = y1;
-
-    arr[6]  = x2;
-    arr[7]  = y2;
-
-    arr[9]  = x1;
-    arr[10] = y1;
-
-    arr[12] = x2;
-    arr[13] = y2;
-
-    arr[15] = x1;
-    arr[16] = y2;
-}
 
 Trampoline::Trampoline(float start, float width) {
     this -> r = (5.0f * width) / 6.0f;
     const float half = width / 2.0f;
     float cover = 74.0f;
     float offset = -(180.0f-cover) / 2.0f;
-    yoffset = r;
+    float yoffset = r;
     this -> position = glm::vec3(start + half, -1 + yoffset, 0);
 
     this -> x = start;
