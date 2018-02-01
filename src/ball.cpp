@@ -9,7 +9,6 @@ Ball::Ball(float x, float y, color_t color) {
     this -> position = glm::vec3(x, y, 0);
     this -> rotation = 0;
     this -> max_speed = 0.05f;
-    this -> acceleration = 0.004f;
     this -> directionX = 0;
     this -> inside = false;
 
@@ -68,16 +67,16 @@ bounding_box_t Ball::bounding_box() {
     return bbox;
 }
 
-void Ball::move(char direction) {
+void Ball::move(char direction, float acc) {
 	if (direction == 'r')
-        speed.x = max(speed.x, min(speed.x + this -> acceleration, (this -> max_speed)));
+        speed.x = max(speed.x, min(speed.x + acc, (this -> max_speed)));
 	else if (direction == 'l')
-        speed.x = min(speed.x, max(speed.x - this -> acceleration, -(this -> max_speed)));
+        speed.x = min(speed.x, max(speed.x - acc, -(this -> max_speed)));
 	else {
 		if (this -> directionX > 0)
-            speed.x = max(0.0f, speed.x - this -> acceleration);
+            speed.x = max(0.0f, speed.x - acc);
 		else if (this -> directionX < 0)
-            speed.x = min(0.0f, speed.x + this -> acceleration);
+            speed.x = min(0.0f, speed.x + acc);
 	}
 }
 

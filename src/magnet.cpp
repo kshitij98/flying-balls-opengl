@@ -24,10 +24,12 @@ void magnet_stick(GLfloat arr[], float x1, float x2, float y1, float y2) {
     arr[33] = x2; arr[34] = -y1;
 }
 
-Magnet::Magnet(int direction) {
-    this -> position = glm::vec3(0.93f * (float)direction, 0.8f, 1);
-    this -> direction = direction;
+Magnet::Magnet(float power) {
+    this -> position = glm::vec3(0.93f, 0.8f, 1);
     this -> thick = 0.7f;
+    this -> rotation = 0;
+    this -> power = power;
+    this -> direction = 1;
 
     const int n = 30;
 
@@ -37,7 +39,7 @@ Magnet::Magnet(int direction) {
 
     float deg = 180.0 / n;
     float r = 0.1f;  
-    float offset = -direction * 90.0f;
+    float offset = -90.0f;
 
     for (int i=0 ; i<n ; ++i) {
         for (int j=0 ; j<9 ; ++j)
@@ -50,8 +52,8 @@ Magnet::Magnet(int direction) {
         magnet_data[i*9 + 7] = r * sin(((offset + deg * (i+1)) * M_PI) / 180.0);
     }
 
-    magnet_stick(magnet_data + 9*n, -direction * r, 0.0f, (1.0f - thick) * r, r);
-    magnet_stick(black_data, -direction * r, -direction * 0.5f * r, (1.0f - thick) * r, r);
+    magnet_stick(magnet_data + 9*n, -r, 0.0f, (1.0f - thick) * r, r);
+    magnet_stick(black_data, -r, -0.5f * r, (1.0f - thick) * r, r);
 
     for (int i=0 ; i<n ; ++i) {
         for (int j=0 ; j<9 ; ++j)
@@ -73,12 +75,24 @@ Magnet::Magnet(int direction) {
 void Magnet::draw(glm::mat4 VP) {
     Matrices.model = glm::mat4(1.0f);
     glm::mat4 translate = glm::translate (this -> position);    // glTranslatef
-    // glm::mat4 rotate    = glm::rotate((float) (this->rotation * M_PI / 180.0f), glm::vec3(0, 0, 1));
-    // rotate          = rotate * glm::translate(glm::vec3(0, 0, 0));
-    Matrices.model *= (translate);
+    glm::mat4 rotate    = glm::rotate((float) (this->rotation * M_PI / 180.0f), glm::vec3(0, 0, 1));
+    rotate          = rotate * glm::translate(glm::vec3(0, 0, 0));
+    Matrices.model *= (translate * rotate);
     glm::mat4 MVP = VP * Matrices.model;
     glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
     draw3DObject(this -> magnet);
     draw3DObject(this -> cavity);
     draw3DObject(this -> black);
+}
+
+void Magnet::changeDir(int direction) {
+    this -> direction = direction;
+    if (direction == 1) {
+        rotation = 0;
+        this -> position = glm::vec3(0.93f, 0.8f, 1);
+    }
+    else {
+        rotation = 180;
+        this -> position = glm::vec3(-0.93f, 0.8f, 1);       
+    }
 }

@@ -42,6 +42,12 @@ int spikecnt;
 int SPIKE_TIME = 120;
 int spikeTime;
 glm::mat4 initVP;
+int magnetDir;
+bool magnetActive;
+int CHANGE_TIME = 600;
+int ACTIVE_TIME = 300;
+int cttimer;
+int activetimer;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 
@@ -88,7 +94,9 @@ void draw() {
 		for (int i=0 ; i<grounds ; ++i)
 			ground[i].draw(VP);
 
-		magnet.draw(initVP);
+		// magnet.changeDir(1);
+		if (magnetActive)
+			magnet.draw(initVP);
 		
 		for (int i=0 ; i<trampolines ; ++i)
 			trampoline[i].draw(VP);
@@ -143,11 +151,11 @@ void tick_input(GLFWwindow *window) {
 		int left  = glfwGetKey(window, GLFW_KEY_LEFT);
 		int right = glfwGetKey(window, GLFW_KEY_RIGHT);
 		if (a && !d)
-			player.move('l');
+			player.move('l', 0.004f);
 		else if (d && !a)
-			player.move('r');
+			player.move('r', 0.004f);
 		else
-			player.move('s');
+			player.move('s', 0.004f);
 
 		if (left && !right) {
 				screen_center_x -= 0.02;
@@ -160,6 +168,15 @@ void tick_input(GLFWwindow *window) {
 }
 
 void tick_elements() {
+		activetimer = (activetimer + 1) % ACTIVE_TIME;
+		cttimer = (cttimer + 1) % CHANGE_TIME;
+
+		if (cttimer == 0)
+			magnet.changeDir(-1 * magnet.direction);
+
+		if (activetimer == 0)
+			magnetActive ^= 1;
+
 		player.tick();
 		for (int i=0 ; i<pools ; ++i)
 			pool[i].tick();
@@ -248,6 +265,13 @@ void tick_elements() {
 
 		if (collided)
 				player.speed = boost * glm::vec3(1, 0.3, 0) * glm::reflect(player.speed, normal);
+
+		if (magnetActive) {
+			if (magnet.direction == 1)
+				player.move('r', 0.0035f);
+			else
+				player.move('l', 0.0035f);
+		}
 }
 
 /* Initialize the OpenGL rendering properties */
@@ -270,7 +294,7 @@ void initGL(GLFWwindow *window, int width, int height) {
 		trampoline[0] = Trampoline(13, 2);
 		ground[2] = Ground(7, 100);
 		spike[0] = Spikes(7, 3, 4, 0.4f);
-		magnet = Magnet(-1);
+		magnet = Magnet(1);
 
 
 		for (int i=0 ; i<1 ; ++i) {

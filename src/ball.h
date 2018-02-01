@@ -20,7 +20,7 @@ public:
     glm::vec3 speed;
     float max_speed;
     float acceleration;
-    void move(char direction);
+    void move(char direction, float acc);
     void jump();
     bounding_box_t bounding_box();
     bool inside;
