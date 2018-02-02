@@ -10,7 +10,7 @@
 class Enemy {
 public:
     Enemy() {}
-    Enemy(float x, float y, color_t color, float size, float _speed, bool plank, float angle);
+    Enemy(float x, float y, color_t color, float size, float _speed, bool plank, float angle, int points);
     glm::vec3 position;
     // float rotation;
     void draw(glm::mat4 VP);
@@ -22,8 +22,9 @@ public:
     float r;
     float rotation;
     bool hasPlank;
+    int points;
 
-    void newShape(float x, float y, color_t color, float size, float _speed, bool plank, float angle);
+    void newShape(float x, float y, color_t color, float size, float _speed, bool plank, float angle, int points);
     // float max_speed;
     // float acceleration;
     // void move(char direction);

@@ -9,16 +9,17 @@ float xrange = 1.0f;
 float yrange = 0.05f;
 
 
-Enemy::Enemy(float x, float y, color_t color, float r, float _speed, bool hasPlank, float angle) {
-    newShape(x, y, color, r, _speed, hasPlank, angle);
+Enemy::Enemy(float x, float y, color_t color, float r, float _speed, bool hasPlank, float angle, int points) {
+    newShape(x, y, color, r, _speed, hasPlank, angle, points);
 }
 
-void Enemy::newShape(float x, float y, color_t color, float r, float _speed, bool hasPlank, float angle) {
+void Enemy::newShape(float x, float y, color_t color, float r, float _speed, bool hasPlank, float angle, int points) {
     this -> position = glm::vec3(x, y, 0);
     this -> speed = glm::vec3(_speed, 0, 0);
     this -> r = r;
     this -> rotation = angle;
     this -> hasPlank = hasPlank;
+    this -> points = points;
 
     const int n = 30;
 

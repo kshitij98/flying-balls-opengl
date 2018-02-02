@@ -43,7 +43,7 @@ int ACTIVE_TIME = 300;
 int cttimer;
 int activetimer;
 int jumps;
-int MAX_JUMPS = 2;
+int MAX_JUMPS = 1;
 int level;
 int points;
 int goal;
@@ -378,18 +378,21 @@ void tick_elements() {
 			spikeTime--;
 
 
+		int jumpUp = 0;
 		if (!collided) {
 				for (int i=0 ; i<balls ; ++i) {
 						glm::vec3 ret = ball[i].detectCollision(player.position, 0.2f, player.speed);
 						if (ret.z == 0) {
 							cerr << "POINTS = " << points << endl;
 							if (!ball[i].hasPlank || ret.x == 0) {	
-								points += 20;
+								points += ball[i].points;
 								ball[i].position.x = INF;
+
 							}
 							collided = 1;
 							boost = glm::vec3(1, 1.0/0.3f, 0);
 							normal = ret;
+							jumpUp = 1;
 						}
 				}
 
@@ -414,6 +417,9 @@ void tick_elements() {
 		}
 		else
 			jumps = max(jumps, 1);
+
+		if (jumpUp)
+			player.speed.y = 0.1f;
 }
 
 void throwBall() {
@@ -430,8 +436,9 @@ void throwBall() {
 	}
 	float y, speed, sz;
 	color_t color;
-	etype[ty].getVals(y, sz, speed, color);
-	ball[last].newShape(screen_center_x - 7, y, color, sz, speed, randomNum(1, 100) <= plankProb, randomNum(-45, 45));
+	int newPoints;
+	etype[ty].getVals(y, sz, speed, color, newPoints);
+	ball[last].newShape(screen_center_x - 7, y, color, sz, speed, randomNum(1, 100) <= plankProb, randomNum(-45, 45), newPoints);
 }
 
 /* Initialize the OpenGL rendering properties */
@@ -448,9 +455,9 @@ void initGL(GLFWwindow *window, int width, int height) {
 		ACTIVE_TIME = 1;
 		ballTime = 5;
 
-		etype[0] = EnemyType(-0.8, 1, 0.25f, 0.3f, 0.005f, 0.01f, COLOR_YELLOW);
-		etype[1] = EnemyType(1, 2.5, 0.2f, 0.3f, 0.015f, 0.025f, COLOR_PINK);
-		etype[2] = EnemyType(2, 4, 0.2f, 0.25f, 0.02f, 0.04f, COLOR_BLACK);
+		etype[0] = EnemyType(-0.8, 1, 0.25f, 0.3f, 0.005f, 0.01f, COLOR_YELLOW, 5);
+		etype[1] = EnemyType(1, 2.5, 0.2f, 0.3f, 0.015f, 0.025f, COLOR_PINK, 10);
+		etype[2] = EnemyType(2, 4, 0.2f, 0.25f, 0.02f, 0.04f, COLOR_BLACK, 20);
 
 		// for (int i=0 ; i<3 ; ++i)
 		// 	etype[i].print();
@@ -467,24 +474,14 @@ void initGL(GLFWwindow *window, int width, int height) {
 			trampoline[i] = Trampoline(0, 0);
 			spike[i] = Spikes(0, 0, 0, 0);
 		}
-
-		// ground[0] = Ground(-100, 90);
-		// pool[0] = Pool(-10, 3);
-		// ground[1] = Ground(-7, 10);
-		// pool[1] = Pool(3, 4);
-		// trampoline[0] = Trampoline(13, 2);
-		// trampoline[1] = Trampoline(-INF, 2);
-		// ground[2] = Ground(7, 100);
-		// spike[0] = Spikes(7, 3, 4, 0.4f);
-		// spike[1] = Spikes(-INF, 3, 4, 0.4f);
 		magnet = Magnet(1);
 
 
 		for (int i=0 ; i<balls ; ++i) {
-			ball[i] = Enemy(INF, 0, COLOR_RED, 0, 0, 0, 0);
+			ball[i] = Enemy(INF, 0, COLOR_RED, 0, 0, 0, 0, 0);
 		}
 
-		setLevel(4);
+		setLevel(1);
 
 		// Create and compile our GLSL program from the shaders
 		programID = LoadShaders("Sample_GL.vert", "Sample_GL.frag");
