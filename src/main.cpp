@@ -1,3 +1,5 @@
+#include <string.h>
+#include <string>
 #include <unistd.h>
 #include "main.h"
 #include "timer.h"
@@ -206,7 +208,23 @@ void generateLevel() {
 }
 
 void updateScoreCard() {
-	scorecard.newShape((timeLeft/60) + 1, (float)health/maxHealth, points);	
+	scorecard.newShape((timeLeft/60) + 1, (float)health/maxHealth, points);
+	int tl = (timeLeft/60) + 1;
+	char title[1000];
+
+	strcpy(title, "LEVEL: ");
+	strcat(title, to_string(level).c_str());
+
+	strcat(title, "\tPoints: ");
+	strcat(title, to_string(points).c_str());
+
+	strcat(title, "/");
+	strcat(title, to_string(goal).c_str());
+
+	strcat(title, "\tTime Left: ");
+	strcat(title, to_string(tl).c_str());
+
+	glfwSetWindowTitle(window, title);
 }
 
 void setLevel(int newLevel) {
@@ -216,7 +234,6 @@ void setLevel(int newLevel) {
 
 	timeLeft = 60 * 60 * 3;
 
-	updateScoreCard();
 
 	if (level > 3)
 		ACTIVE_TIME = 300;
@@ -235,6 +252,7 @@ void setLevel(int newLevel) {
 		trampolines = 2;
 
 	points = 0;
+	updateScoreCard();
 	goal = 200 + (level*50);
 	ball_ratio[0] = max(6.0f - level, 1.0f);
 	ball_ratio[1] = (level >= 5 ? 1.0f : 2.0f);
@@ -306,16 +324,20 @@ void tick_input(GLFWwindow *window) {
 void tick_elements() {
 		ballTime--;
 		timeLeft--;
-		if (timeLeft % 60 == 0)
-			cerr << timeLeft / 60 << endl;
+		if (timeLeft % 60 == 0) {
+			updateScoreCard();
+			// cerr << timeLeft / 60 << endl;
+		}
 		if (!timeLeft || health <= 0) {
 			sleep(3);
 			setLevel(1);
 		}
 		if (ballTime == 0)
 			throwBall();
-		if (points >= goal)
+		if (points >= goal) {
+			sleep(3);
 			setLevel(level+1);
+		}
 
 		activetimer = (activetimer + 1) % ACTIVE_TIME;
 		cttimer = (cttimer + 1) % CHANGE_TIME;
@@ -409,6 +431,7 @@ void tick_elements() {
 							if (!ball[i].hasPlank || ret.x == 0) {	
 								points += ball[i].points;
 								ball[i].position.x = INF;
+								updateScoreCard();
 							}
 							cerr << "POINTS = " << points << endl;
 							collided = 1;
@@ -505,7 +528,7 @@ void initGL(GLFWwindow *window, int width, int height) {
 			ball[i] = Enemy(INF, 0, COLOR_RED, 0, 0, 0, 0, 0);
 		}
 
-		setLevel(2);
+		setLevel(1);
 
 		// Create and compile our GLSL program from the shaders
 		programID = LoadShaders("Sample_GL.vert", "Sample_GL.frag");

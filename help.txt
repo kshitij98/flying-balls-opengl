@@ -1,0 +1,58 @@
+Pacman Killer
+=============
+
+GAME RULES
+----------
+This is an arcade game where the player controls a metal player and uses it to land on and destroy other flying balls constantly traversing the screen from left to right. On landing on the flying balls, they disappear and the player gets launched upwards a little higher (Like Mario jumping on enemies).
+
+Objects in the game:
+
+1. Water: When the player is inside the water body, movement speed is slowed down and the height reached by jumping from inside is also shorter. The floor of the water should be a semi-circle and the player on falling in the water shouldn’t bounce off, but follow the curve until the lowermost point is reached (provided the player isn’t explicitly moving it sideways). If the player is moving left or right, he should follow the path along the semi-circle.
+2. Inclined slopes on some flying balls: If the player lands on these slopes, he/she would be launched at an angle of reflection from the perpendicular to the slab following the laws of reflection.
+3. Trampoline: Landing on the trampoline will cause the player to jump higher than usual (Make sure the player starts off faster and eventually slows down and doesn’t just reach a higher point with the same speed).
+4. Magnet: The player’s path needs to be influenced by the magnet. Assume magnet causes a constant attractive force in its direction.
+5. Porcupine: The player's health is reduced when it falls on the porcupine.
+
+GAME FEATURES
+-------------
+1. Infinite world: A cyclic world is implemented without any borders.
+2. Infinite Levels: The ratio of different types of balls, player's health, objects in the game are changed according to the level number.
+3. Scorecard: Health, points and time left is displayed on the bottom of the screen.
+4. Physics: Various things are taken into consideration for the movement of the various objects on screen (Friction, Max Velocity due to magnetic attraction, Bouncing effect, ...)
+5. Animations: Moving water, Fixed magnet, Fixed scorecard, ...
+
+
+HOW TO PLAY
+-----------
+1. Jump on the flying balls to get points.
+2. Avoid porcupines as they decrease health.
+3. Reach the required number of points in the given time.
+4. The points distribution is as follows:
+    - Black: 20
+    - Pink: 10
+    - Yellow: 5
+
+Controls
+--------
+
+[a]: Move left
+[Drag left]: Move left
+
+[d]: Move right
+[Drag Right]: Move right
+
+[space]: Jump
+
+[Left]: Pan left
+[Scroll Left]: Pan left
+
+[Right]: Pan right
+[Scroll Right]: Pan right
+
+[Scroll Up]: Zoom In
+
+[Scroll Down]: Zoom Out
+
+[Drag Up]: Jump
+
+[q]: Quit Game
