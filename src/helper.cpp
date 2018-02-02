@@ -44,3 +44,7 @@ void pie(GLfloat arr[], float r, int n, float offset, float deg) {
         arr[i*9 + 7] = r * Sin(offset + deg * (i+1));
     }
 }
+
+int randomNum(int a, int b) {
+    return a + rand() % (b - a + 1);
+}

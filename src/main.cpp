@@ -7,6 +7,8 @@
 #include "spikes.h"
 #include "enemy.h"
 #include "magnet.h"
+#include "helper.h"
+#include "enemytype.h"
 
 using namespace std;
 
@@ -27,6 +29,7 @@ Trampoline trampoline[10];
 Spikes spike[10];
 Enemy ball[balls];
 Magnet magnet;
+EnemyType etype[3];
 
 // float eps = 0.3f;
 int spikecnt;
@@ -53,8 +56,10 @@ int plankProb;
 bool dragging;
 double posX, posY;
 int INF = 1000;
+int ballTime;
+int last;
 
-int ball_ratio[] = {5, 2, 2};
+float ball_ratio[] = {5, 2, 2};
 // 5 2 2
 // 4 2 2
 // 3 2 2
@@ -102,11 +107,11 @@ void draw() {
 		glm::mat4 MVP;  // MVP = Projection * View * Model
 
 		// Scene render
-		for (int i=0 ; i<balls ; ++i)
-			ball[i].draw(VP);
-
 		for (int i=0 ; i<pools ; ++i)
 			pool[i].draw(VP);
+
+		for (int i=0 ; i<balls ; ++i)
+			ball[i].draw(VP);
 
 		for (int i=0 ; i<grounds ; ++i)
 			ground[i].draw(VP);
@@ -169,13 +174,25 @@ void generateLevel() {
 
 	cerr << "Generating level " << level << "..." << endl;
 
+	int poolSize = randomNum(2, 4);
+	float halfPool = poolSize / 2.0f;
+
 	if (grounds == 1)
 		ground[0].newShape(-INF, (INF << 1));
 	else if (grounds == 2 && pools == 1) {
-		ground[0].newShape(-INF, INF - 2);
-		pool[0].newShape(-2, 4);
-		ground[1].newShape(2 , INF - 2);
+		ground[0].newShape(-INF, INF - halfPool);
+		pool[0].newShape(-halfPool, poolSize);
+		ground[1].newShape(halfPool , INF - halfPool);
 	}
+
+	int spikeWidth = randomNum(4, 8);
+	spike[0].newShape(-halfPool-spikeWidth-randomNum(0, 2), spikeWidth-3, spikeWidth, 0.001f * randomNum(1, 3));
+
+	int spikeWidth2 = randomNum(4, 8);
+	spike[1].newShape(halfPool + randomNum(0, 2), spikeWidth2-3, spikeWidth2, 0.001f * randomNum(1, 3));
+
+	trampoline[0].newShape(-halfPool - 3 - randomNum(0, 2), randomNum(1, 3));
+	trampoline[1].newShape(halfPool + randomNum(0, 2), randomNum(1, 3));
 }
 
 void level_up(int newLevel) {
@@ -199,10 +216,18 @@ void level_up(int newLevel) {
 
 	points = 0;
 	goal = 200 + (level*50);
-	ball_ratio[0] = max(6 - level, 1);
-	ball_ratio[1] = (level >= 5 ? 1 : 2);
-	ball_ratio[2] = max(level - 3, 2);
-
+	ball_ratio[0] = max(6.0f - level, 1.0f);
+	ball_ratio[1] = (level >= 5 ? 1.0f : 2.0f);
+	ball_ratio[2] = max(level - 3.0f, 2.0f);
+	float total = 0;
+	for (int i=0 ; i<3 ; ++i)
+		total += ball_ratio[i];
+	// cerr << "RATIOS : ";
+	for (int i=0 ; i<3 ; ++i) {
+		ball_ratio[i] /= total;
+		// cerr << ball_ratio[i] << ' ';
+	}
+	// cerr << endl;
 	generateLevel();
 }
 
@@ -259,6 +284,11 @@ void tick_input(GLFWwindow *window) {
 }
 
 void tick_elements() {
+		ballTime--;
+		if (ballTime == 0) {
+			cerr << "THROW";
+			throwBall();
+		}
 		if (points >= goal)
 			level_up(level+1);
 
@@ -275,8 +305,12 @@ void tick_elements() {
 		for (int i=0 ; i<pools ; ++i)
 			pool[i].tick();
 
-		for (int i=0 ; i<balls ; ++i)
+		last = 0;
+		for (int i=0 ; i<balls ; ++i) {
 			ball[i].tick();
+			if (ball[i].position.x > ball[last].position.x)
+				last = i; 
+		}
 
 		for (int i=0 ; i<spikes ; ++i)
 			spike[i].tick();
@@ -344,12 +378,12 @@ void tick_elements() {
 				for (int i=0 ; i<balls ; ++i) {
 						glm::vec3 ret = ball[i].detectCollision(player.position, 0.2f, player.speed);
 						if (ret.z == 0) {
-							points += 20;
 							cerr << "POINTS = " << points << endl;
-							// cerr << "HIT!" << endl;
-							// player.position.y = max(player.position.y, trampoline[i].h);
+							if (!ball[i].hasPlank || ret.x == 0) {	
+								points += 20;
+								ball[i].position.x = INF;
+							}
 							collided = 1;
-							// spiked = 1;
 							boost = glm::vec3(1, 1.0/0.3f, 0);
 							normal = ret;
 						}
@@ -378,6 +412,24 @@ void tick_elements() {
 			jumps = max(jumps, 1);
 }
 
+void throwBall() {
+	ballTime = max(randomNum(1, 50), randomNum(1, 50));
+	float rnd = randomNum(0, 999) / 1000.0f;
+	int ty = 0;
+	for (int i=0 ; i<3 ; ++i) {
+		if (rnd > ball_ratio[i])
+			rnd -= ball_ratio[i];
+		else {
+			ty = i;
+			break;
+		}
+	}
+	float y, speed, sz;
+	color_t color;
+	etype[ty].getVals(y, sz, speed, color);
+	ball[last].newShape(screen_center_x - 7, y, color, sz, speed, randomNum(1, 100) <= plankProb, randomNum(-45, 45));
+}
+
 /* Initialize the OpenGL rendering properties */
 /* Add all the models to be created here */
 void initGL(GLFWwindow *window, int width, int height) {
@@ -385,10 +437,19 @@ void initGL(GLFWwindow *window, int width, int height) {
 
 		// Initialise State
 		spikecnt = 1;
+		ballTime = 0;
 		level = 1;
 		points = 0;
 		goal = 250;
 		ACTIVE_TIME = 1;
+		ballTime = 5;
+
+		etype[0] = EnemyType(-0.8, 1, 0.25f, 0.3f, 0.005f, 0.01f, COLOR_YELLOW);
+		etype[1] = EnemyType(1, 2.5, 0.2f, 0.3f, 0.015f, 0.025f, COLOR_PINK);
+		etype[2] = EnemyType(2, 4, 0.2f, 0.25f, 0.02f, 0.04f, COLOR_BLACK);
+
+		// for (int i=0 ; i<3 ; ++i)
+		// 	etype[i].print();
 
 		initVP = Matrices.projection * Matrices.view;
 
@@ -416,9 +477,9 @@ void initGL(GLFWwindow *window, int width, int height) {
 
 
 		for (int i=0 ; i<balls ; ++i) {
-			ball[i] = Enemy(-4, 0 + i * 1.0f, COLOR_RED, 0.2, 0.00 + (float)i * 0.003f, 0, 30.0f);
+			ball[i] = Enemy(INF, 0, COLOR_RED, 0, 0, 0, 0);
 		}
-		
+
 		level_up(1);
 
 		// Create and compile our GLSL program from the shaders
@@ -509,7 +570,6 @@ void scroll(int xoffset, int yoffset) {
 			screen_center_x = max((float)screen_center_x - 0.02f, player.position.x - 2);
 		else if (xoffset == -1)
 			screen_center_x = min((float)screen_center_x + 0.02f, player.position.x + 2);
-
 
 		reset_screen();
 }
