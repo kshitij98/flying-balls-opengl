@@ -58,6 +58,10 @@ double posX, posY;
 int INF = 1000;
 int ballTime;
 int last;
+int MAP_LEFT = -13;
+int MAP_RIGHT = 13;
+
+
 
 float ball_ratio[] = {5, 2, 2};
 // 5 2 2
@@ -195,7 +199,7 @@ void generateLevel() {
 	trampoline[1].newShape(halfPool + randomNum(0, 2), randomNum(1, 3));
 }
 
-void level_up(int newLevel) {
+void setLevel(int newLevel) {
 	level = newLevel;
 
 	if (level > 3)
@@ -273,13 +277,13 @@ void tick_input(GLFWwindow *window) {
 		else
 			player.move('s', 0.004f);
 
-		screen_center_x = max((float)screen_center_x, player.position.x - 2);
-		screen_center_x = min((float)screen_center_x, player.position.x + 2);
+		setScreenX(max((float)screen_center_x, player.position.x - 2));
+		setScreenX(min((float)screen_center_x, player.position.x + 2));
 
 		if (left && !right)
-				screen_center_x = max((float)screen_center_x - 0.02f, player.position.x - 2);
+				setScreenX(max((float)screen_center_x - 0.02f, player.position.x - 2));
 		else if (right && !left)
-				screen_center_x = min((float)screen_center_x + 0.02f, player.position.x + 2);
+				setScreenX(min((float)screen_center_x + 0.02f, player.position.x + 2));
 		reset_screen();
 }
 
@@ -290,7 +294,7 @@ void tick_elements() {
 			throwBall();
 		}
 		if (points >= goal)
-			level_up(level+1);
+			setLevel(level+1);
 
 		activetimer = (activetimer + 1) % ACTIVE_TIME;
 		cttimer = (cttimer + 1) % CHANGE_TIME;
@@ -480,7 +484,7 @@ void initGL(GLFWwindow *window, int width, int height) {
 			ball[i] = Enemy(INF, 0, COLOR_RED, 0, 0, 0, 0);
 		}
 
-		level_up(1);
+		setLevel(4);
 
 		// Create and compile our GLSL program from the shaders
 		programID = LoadShaders("Sample_GL.vert", "Sample_GL.frag");
@@ -561,15 +565,36 @@ bool jump() {
 	}
 }
 
+void translateBalls(float offset) {
+	for (int i=0 ; i<balls ; ++i)
+		ball[i].position.x += offset;
+	player.position.x += offset;
+}
+
+void setScreenX(float posX) {
+	cerr << screen_center_x << " = ";
+	screen_center_x = posX;
+	int MAP_SIZE = MAP_RIGHT - MAP_LEFT;
+	if (posX > MAP_RIGHT) {
+		screen_center_x -= MAP_SIZE;
+		translateBalls(-MAP_SIZE);
+	}
+	else if (posX < MAP_LEFT) {
+		screen_center_x += MAP_SIZE;
+		translateBalls(MAP_SIZE);
+	}
+	cerr << screen_center_x << endl;
+}
+
 void scroll(int xoffset, int yoffset) {
 		if (yoffset == 1)
 				screen_zoom = min(screen_zoom + 0.02, 1.1);
 		else if (yoffset == -1)
 				screen_zoom = max(screen_zoom - 0.02, 0.7);
 		if (xoffset == 1)
-			screen_center_x = max((float)screen_center_x - 0.02f, player.position.x - 2);
+			setScreenX(max((float)screen_center_x - 0.02f, player.position.x - 2));
 		else if (xoffset == -1)
-			screen_center_x = min((float)screen_center_x + 0.02f, player.position.x + 2);
+			setScreenX(min((float)screen_center_x + 0.02f, player.position.x + 2));
 
 		reset_screen();
 }

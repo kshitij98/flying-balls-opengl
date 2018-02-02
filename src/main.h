@@ -80,6 +80,9 @@ bool jump();
 void scroll(int xoffset, int yoffset);
 void setInitialMousePos(double xpos, double ypos, bool clicked);
 void throwBall();
+void setScreenX(float posX);
+void translateBalls(float offset);
+void setLevel(int level);
 
 extern float screen_zoom, screen_center_x, screen_center_y;
 void reset_screen();
