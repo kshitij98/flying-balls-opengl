@@ -42,6 +42,7 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void error_callback(int error, const char *description);
 void quit(GLFWwindow *window);
 void reshapeWindow(GLFWwindow *window, int width, int height);
+void updateScoreCard();
 
 // Types
 struct VAO {

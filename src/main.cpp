@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "main.h"
 #include "timer.h"
 #include "ball.h"
@@ -9,6 +10,7 @@
 #include "magnet.h"
 #include "helper.h"
 #include "enemytype.h"
+#include "scorecard.h"
 
 using namespace std;
 
@@ -30,6 +32,7 @@ Spikes spike[10];
 Enemy ball[balls];
 Magnet magnet;
 EnemyType etype[3];
+ScoreCard scorecard;
 
 // float eps = 0.3f;
 int spikecnt;
@@ -60,7 +63,8 @@ int ballTime;
 int last;
 int MAP_LEFT = -13;
 int MAP_RIGHT = 13;
-
+int health;
+int maxHealth;
 
 
 float ball_ratio[] = {5, 2, 2};
@@ -130,6 +134,8 @@ void draw() {
 			spike[i].draw(VP);
 
 		player.draw(VP);
+
+		scorecard.draw(initVP);
 }
 
 glm::vec3 detectCollision(Ball player, Ground ground) {
@@ -199,8 +205,18 @@ void generateLevel() {
 	trampoline[1].newShape(halfPool + randomNum(0, 2), randomNum(1, 3));
 }
 
+void updateScoreCard() {
+	scorecard.newShape((timeLeft/60) + 1, (float)health/maxHealth, points);	
+}
+
 void setLevel(int newLevel) {
 	level = newLevel;
+	maxHealth = max(10, (6 - level) * 10);
+	health = maxHealth;
+
+	timeLeft = 60 * 60 * 3;
+
+	updateScoreCard();
 
 	if (level > 3)
 		ACTIVE_TIME = 300;
@@ -214,7 +230,7 @@ void setLevel(int newLevel) {
 	spikes = (level > 3 ? 2 : 0);
 	if (level == 3)	spikes = 1;
 	plankProb = min((level - 1) * 5, 80);
-	trampolines = ((2 <= level && level <= 6) ? 1 : 0);
+	trampolines = ((2 <= level) ? 1 : 0);
 	if (4 <= level && level <= 5)
 		trampolines = 2;
 
@@ -289,6 +305,13 @@ void tick_input(GLFWwindow *window) {
 
 void tick_elements() {
 		ballTime--;
+		timeLeft--;
+		if (timeLeft % 60 == 0)
+			cerr << timeLeft / 60 << endl;
+		if (!timeLeft || health <= 0) {
+			sleep(3);
+			setLevel(1);
+		}
 		if (ballTime == 0)
 			throwBall();
 		if (points >= goal)
@@ -370,7 +393,9 @@ void tick_elements() {
 		if (spiked && spikeTime == 0) {
 			spikeTime = SPIKE_TIME;
 			// spiked();
-			cerr << "SPIKE! " << spikecnt++;
+			health -= 10;
+			updateScoreCard();
+			cerr << "SPIKE! " << spikecnt++ << endl;
 		}
 		else if (spikeTime)
 			spikeTime--;
@@ -381,12 +406,11 @@ void tick_elements() {
 				for (int i=0 ; i<balls ; ++i) {
 						glm::vec3 ret = ball[i].detectCollision(player.position, 0.2f, player.speed);
 						if (ret.z == 0) {
-							cerr << "POINTS = " << points << endl;
 							if (!ball[i].hasPlank || ret.x == 0) {	
 								points += ball[i].points;
 								ball[i].position.x = INF;
-
 							}
+							cerr << "POINTS = " << points << endl;
 							collided = 1;
 							boost = glm::vec3(1, 1.0/0.3f, 0);
 							normal = ret;
@@ -404,7 +428,7 @@ void tick_elements() {
 		if (inside)
 			jumps = 0;
 		else
-			jumps = max(jumps, 1);
+			jumps = min(jumps+1, 5);
 
 		if (collided) {
 			jumps = 0;
@@ -414,7 +438,8 @@ void tick_elements() {
 				player.speed = boost * glm::vec3(1, 0.3, 0) * glm::reflect(player.speed, normal);
 		}
 		else
-			jumps = max(jumps, 1);
+			jumps = min(jumps+1, 5);
+			// jumps = max(jumps, 1);
 
 		if (jumpUp)
 			player.speed.y = 0.1f;
@@ -473,13 +498,14 @@ void initGL(GLFWwindow *window, int width, int height) {
 			spike[i] = Spikes(0, 0, 0, 0);
 		}
 		magnet = Magnet(1);
+		scorecard = ScoreCard(0, 1.0f, 0);
 
 
 		for (int i=0 ; i<balls ; ++i) {
 			ball[i] = Enemy(INF, 0, COLOR_RED, 0, 0, 0, 0, 0);
 		}
 
-		setLevel(1);
+		setLevel(2);
 
 		// Create and compile our GLSL program from the shaders
 		programID = LoadShaders("Sample_GL.vert", "Sample_GL.frag");
@@ -554,8 +580,8 @@ void reset_screen() {
 }
 
 bool jump() {
-	if (jumps < MAX_JUMPS) {
-		jumps++;
+	if (jumps != 5) {
+		jumps = 5;
 		player.jump();
 	}
 }
