@@ -7,21 +7,7 @@ using namespace std;
 
 
 Ground::Ground(float start, float width) {
-		float r = width / 2.0;
-
-		this -> x = start;
-		this -> y = start + width;
-		this -> h = -1;
-    this -> position = glm::vec3(start + r, 0, 0);
-
-    GLfloat vertex_buffer_data[18];
-    rectangle(vertex_buffer_data, -r, r, -1, -20);
-
-    GLfloat vertex_buffer_data2[18];
-    rectangle(vertex_buffer_data2, -r, r, -1.2, -20);
-
-    this -> grass = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, COLOR_GREEN, GL_FILL);
-    this -> sand = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data2, COLOR_RED, GL_FILL);
+    this -> newShape(start, width);
 }
 
 void Ground::draw(glm::mat4 VP) {
@@ -34,4 +20,22 @@ void Ground::draw(glm::mat4 VP) {
     glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
     draw3DObject(this -> grass);
     draw3DObject(this -> sand);
+}
+
+void Ground::newShape(float start, float width) {
+	float r = width / 2.0;
+
+	this -> x = start;
+	this -> y = start + width;
+	this -> h = -1;
+    this -> position = glm::vec3(start + r, 0, 0);
+
+    GLfloat vertex_buffer_data[18];
+    rectangle(vertex_buffer_data, -r, r, -1, -20);
+
+    GLfloat vertex_buffer_data2[18];
+    rectangle(vertex_buffer_data2, -r, r, -1.2, -20);
+
+    this -> grass = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, COLOR_GREEN, GL_FILL);
+    this -> sand = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data2, COLOR_RED, GL_FILL);
 }

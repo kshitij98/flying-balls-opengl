@@ -7,6 +7,10 @@ using namespace std;
 
 
 Ball::Ball(float x, float y, color_t color) {
+    newShape(x, y, color);
+}
+
+void Ball::newShape(float x, float y, color_t color) {
     this -> position = glm::vec3(x, y, 0);
     this -> rotation = 0;
     this -> max_speed = 0.05f;

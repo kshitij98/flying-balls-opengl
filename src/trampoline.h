@@ -8,6 +8,7 @@ class Trampoline {
 public:
     Trampoline() {}
     Trampoline(float x, float y);
+    void newShape(float x, float y);
     glm::vec3 position;
     void draw(glm::mat4 VP);
     float r;

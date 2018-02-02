@@ -8,11 +8,41 @@ using namespace std;
 float yoffset;
 
 Pool::Pool(float start, float width) {
+    newShape(start, width);
+}
+
+void Pool::draw(glm::mat4 VP) {
+    Matrices.model = glm::mat4(1.0f);
+    glm::mat4 translate = glm::translate (this -> position);    // glTranslatef
+    glm::mat4 rotate    = glm::rotate((float) (this->rotation * M_PI / 180.0f), glm::vec3(0, 0, 1));
+    rotate          = rotate * glm::translate(glm::vec3(0, 0, 0));
+    Matrices.model *= (translate);
+    glm::mat4 MVP = VP * Matrices.model;
+    glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+    draw3DObject(this -> grass);
+    draw3DObject(this -> sand);
+    draw3DObject(this -> pool);
+    Matrices.model = glm::mat4(1.0f) * glm::translate (this -> position) * rotate;
+    MVP = VP * Matrices.model;
+    glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+    draw3DObject(this -> water);
+}
+
+void Pool::tick() {
+    this -> rotation += this -> flow; 
+
+    if (abs(this -> flow) >= 0.1f)
+        this -> acceleration *= -1.0f;
+
+    this -> flow += this -> acceleration;
+}
+
+void Pool::newShape(float start, float width) {
     this -> rotation = 0;
     this -> flow = 0.1f;
     this -> acceleration = 0.005f;
     this -> r = (5.0f * width) / 8.0f;
-    const float half = width / 2.0f;
+    float half = width / 2.0f;
     yoffset = ((3.0f * width) / 8.0f);
     this -> position = glm::vec3(start + width/2.0, -1 + yoffset, 0);
     float cover = 104.0f;
@@ -41,8 +71,8 @@ Pool::Pool(float start, float width) {
         for (int j=0 ; j<18 ; ++j)
             water_data[(i*18) + j] = 0.0f;
 
-				water_data[i*18 + 0]  = (waterH / Sin(offset - deg * i)) * Cos(offset - deg * i);
-				water_data[i*18 + 1]  = waterH;
+                water_data[i*18 + 0]  = (waterH / Sin(offset - deg * i)) * Cos(offset - deg * i);
+                water_data[i*18 + 1]  = waterH;
             
         water_data[i*18 + 3]  = r * Cos(offset - deg * i);
         water_data[i*18 + 4]  = r * Sin(offset - deg * i);
@@ -61,30 +91,5 @@ Pool::Pool(float start, float width) {
     }
 
     this -> water = create3DObject(GL_TRIANGLES, 3 * n, water_data, COLOR_BLUE, GL_FILL);
-}
 
-void Pool::draw(glm::mat4 VP) {
-    Matrices.model = glm::mat4(1.0f);
-    glm::mat4 translate = glm::translate (this -> position);    // glTranslatef
-    glm::mat4 rotate    = glm::rotate((float) (this->rotation * M_PI / 180.0f), glm::vec3(0, 0, 1));
-    rotate          = rotate * glm::translate(glm::vec3(0, 0, 0));
-    Matrices.model *= (translate);
-    glm::mat4 MVP = VP * Matrices.model;
-    glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
-    draw3DObject(this -> grass);
-    draw3DObject(this -> sand);
-    draw3DObject(this -> pool);
-    Matrices.model = glm::mat4(1.0f) * glm::translate (this -> position) * rotate;
-    MVP = VP * Matrices.model;
-    glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
-    draw3DObject(this -> water);
-}
-
-void Pool::tick() {
-    this -> rotation += this -> flow; 
-
-    if (abs(this -> flow) >= 0.1f)
-        this -> acceleration *= -1.0f;
-
-    this -> flow += this -> acceleration;
 }

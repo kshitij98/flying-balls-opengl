@@ -9,6 +9,10 @@ using namespace std;
 // float yoffset;
 
 Trampoline::Trampoline(float start, float width) {
+    newShape(start, width);
+}
+
+void Trampoline::newShape(float start, float width) {
     this -> r = (5.0f * width) / 6.0f;
     const float half = width / 2.0f;
     float cover = 74.0f;
@@ -33,8 +37,8 @@ Trampoline::Trampoline(float start, float width) {
         for (int j=0 ; j<18 ; ++j)
             bed_data[(i*18) + j] = 0.0f;
 
-		bed_data[i*18 + 0]  = (waterH / Sin(offset - deg * i)) * Cos(offset - deg * i);
-		bed_data[i*18 + 1]  = waterH;
+        bed_data[i*18 + 0]  = (waterH / Sin(offset - deg * i)) * Cos(offset - deg * i);
+        bed_data[i*18 + 1]  = waterH;
             
         bed_data[i*18 + 3]  = r * Cos(offset - deg * i);
         bed_data[i*18 + 4]  = r * Sin(offset - deg * i);

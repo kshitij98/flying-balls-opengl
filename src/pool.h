@@ -15,6 +15,7 @@ public:
     float rotation;
     float flow;
     float acceleration;
+    void newShape(float start, float width);
     // bounding_box_t bounding_box();
 private:
     VAO *grass;

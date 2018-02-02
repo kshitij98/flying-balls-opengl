@@ -8,6 +8,7 @@ class Spikes {
 public:
     Spikes() {}
     Spikes(float start, float width, float range, float speed);
+    void newShape(float start, float width, float range, float speed);
     glm::vec3 position;
     void draw(glm::mat4 VP);
     float width;

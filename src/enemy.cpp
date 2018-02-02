@@ -10,6 +10,10 @@ float yrange = 0.05f;
 
 
 Enemy::Enemy(float x, float y, color_t color, float r, float _speed, bool hasPlank, float angle) {
+    newShape(x, y, color, r, _speed, hasPlank, angle);
+}
+
+void Enemy::newShape(float x, float y, color_t color, float r, float _speed, bool hasPlank, float angle) {
     this -> position = glm::vec3(x, y, 0);
     this -> speed = glm::vec3(_speed, 0, 0);
     this -> r = r;

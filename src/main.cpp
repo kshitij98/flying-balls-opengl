@@ -18,12 +18,14 @@ GLFWwindow *window;
 * Customizable functions *
 **************************/
 
+const int balls = 100;
+
 Ball player;
 Ground ground[10];
 Pool pool[10];
 Trampoline trampoline[10];
-Spikes spike[3];
-Enemy ball[100];
+Spikes spike[10];
+Enemy ball[balls];
 Magnet magnet;
 
 // float eps = 0.3f;
@@ -50,6 +52,7 @@ int spikes = 1;
 int plankProb;
 bool dragging;
 double posX, posY;
+int INF = 1000;
 
 int ball_ratio[] = {5, 2, 2};
 // 5 2 2
@@ -99,7 +102,7 @@ void draw() {
 		glm::mat4 MVP;  // MVP = Projection * View * Model
 
 		// Scene render
-		for (int i=0 ; i<1 ; ++i)
+		for (int i=0 ; i<balls ; ++i)
 			ball[i].draw(VP);
 
 		for (int i=0 ; i<pools ; ++i)
@@ -161,6 +164,20 @@ glm::vec3 detectCollision(Ball player, Spikes spike) {
 // 2 1 1 1 10
 // 2 1 2 1 15
 
+void generateLevel() {
+	// -INF = ground = pool = ground = INF
+
+	cerr << "Generating level " << level << "..." << endl;
+
+	if (grounds == 1)
+		ground[0].newShape(-INF, (INF << 1));
+	else if (grounds == 2 && pools == 1) {
+		ground[0].newShape(-INF, INF - 2);
+		pool[0].newShape(-2, 4);
+		ground[1].newShape(2 , INF - 2);
+	}
+}
+
 void level_up(int newLevel) {
 	level = newLevel;
 
@@ -176,14 +193,31 @@ void level_up(int newLevel) {
 	spikes = (level > 3 ? 2 : 0);
 	if (level == 3)	spikes = 1;
 	plankProb = min((level - 1) * 5, 80);
-
+	trampolines = ((2 <= level && level <= 6) ? 1 : 0);
+	if (4 <= level && level <= 5)
+		trampolines = 2;
 
 	points = 0;
 	goal = 200 + (level*50);
 	ball_ratio[0] = max(6 - level, 1);
 	ball_ratio[1] = (level >= 5 ? 1 : 2);
 	ball_ratio[2] = max(level - 3, 2);
+
+	generateLevel();
 }
+
+// 0
+// 1
+// 1
+// 2
+// 2
+// 1
+// 0
+// 0
+// 0
+// 0
+// 0
+// 0
 
 // void tick_level() {
 
@@ -225,6 +259,9 @@ void tick_input(GLFWwindow *window) {
 }
 
 void tick_elements() {
+		if (points >= goal)
+			level_up(level+1);
+
 		activetimer = (activetimer + 1) % ACTIVE_TIME;
 		cttimer = (cttimer + 1) % CHANGE_TIME;
 
@@ -238,7 +275,7 @@ void tick_elements() {
 		for (int i=0 ; i<pools ; ++i)
 			pool[i].tick();
 
-		for (int i=0 ; i<1 ; ++i)
+		for (int i=0 ; i<balls ; ++i)
 			ball[i].tick();
 
 		for (int i=0 ; i<spikes ; ++i)
@@ -304,10 +341,12 @@ void tick_elements() {
 
 
 		if (!collided) {
-				for (int i=0 ; i<1 ; ++i) {
+				for (int i=0 ; i<balls ; ++i) {
 						glm::vec3 ret = ball[i].detectCollision(player.position, 0.2f, player.speed);
 						if (ret.z == 0) {
-							cerr << "HIT!" << endl;
+							points += 20;
+							cerr << "POINTS = " << points << endl;
+							// cerr << "HIT!" << endl;
 							// player.position.y = max(player.position.y, trampoline[i].h);
 							collided = 1;
 							// spiked = 1;
@@ -356,19 +395,31 @@ void initGL(GLFWwindow *window, int width, int height) {
 		// Create the models
 
 		player = Ball(0, 0, COLOR_RED);
-		ground[0] = Ground(-100, 90);
-		pool[0] = Pool(-10, 3);
-		ground[1] = Ground(-7, 10);
-		pool[1] = Pool(3, 4);
-		trampoline[0] = Trampoline(13, 2);
-		ground[2] = Ground(7, 100);
-		spike[0] = Spikes(7, 3, 4, 0.4f);
+
+		for (int i=0 ; i<10 ; ++i) {
+			ground[i] = Ground(0, 0);
+			pool[i] = Pool(0, 0);
+			trampoline[i] = Trampoline(0, 0);
+			spike[i] = Spikes(0, 0, 0, 0);
+		}
+
+		// ground[0] = Ground(-100, 90);
+		// pool[0] = Pool(-10, 3);
+		// ground[1] = Ground(-7, 10);
+		// pool[1] = Pool(3, 4);
+		// trampoline[0] = Trampoline(13, 2);
+		// trampoline[1] = Trampoline(-INF, 2);
+		// ground[2] = Ground(7, 100);
+		// spike[0] = Spikes(7, 3, 4, 0.4f);
+		// spike[1] = Spikes(-INF, 3, 4, 0.4f);
 		magnet = Magnet(1);
 
 
-		for (int i=0 ; i<1 ; ++i) {
+		for (int i=0 ; i<balls ; ++i) {
 			ball[i] = Enemy(-4, 0 + i * 1.0f, COLOR_RED, 0.2, 0.00 + (float)i * 0.003f, 0, 30.0f);
 		}
+		
+		level_up(1);
 
 		// Create and compile our GLSL program from the shaders
 		programID = LoadShaders("Sample_GL.vert", "Sample_GL.frag");

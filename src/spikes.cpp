@@ -6,6 +6,10 @@ using namespace std;
 
 
 Spikes::Spikes(float start, float width, float range, float speed) {
+    newShape(start, width, range, speed);
+}
+
+void Spikes::newShape(float start, float width, float range, float speed) {
     this -> width = width;
     const float half = width / 2.0f;
 

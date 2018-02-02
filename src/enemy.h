@@ -22,6 +22,8 @@ public:
     float r;
     float rotation;
     bool hasPlank;
+
+    void newShape(float x, float y, color_t color, float size, float _speed, bool plank, float angle);
     // float max_speed;
     // float acceleration;
     // void move(char direction);
