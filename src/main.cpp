@@ -20,7 +20,7 @@ GLFWwindow *window;
 * Customizable functions *
 **************************/
 
-const int balls = 100;
+const int balls = 1000;
 
 Ball player;
 Ground ground[10];
@@ -289,10 +289,8 @@ void tick_input(GLFWwindow *window) {
 
 void tick_elements() {
 		ballTime--;
-		if (ballTime == 0) {
-			cerr << "THROW";
+		if (ballTime == 0)
 			throwBall();
-		}
 		if (points >= goal)
 			setLevel(level+1);
 
@@ -569,7 +567,6 @@ void translateBalls(float offset) {
 }
 
 void setScreenX(float posX) {
-	cerr << screen_center_x << " = ";
 	screen_center_x = posX;
 	int MAP_SIZE = MAP_RIGHT - MAP_LEFT;
 	if (posX > MAP_RIGHT) {
@@ -580,7 +577,6 @@ void setScreenX(float posX) {
 		screen_center_x += MAP_SIZE;
 		translateBalls(MAP_SIZE);
 	}
-	cerr << screen_center_x << endl;
 }
 
 void scroll(int xoffset, int yoffset) {
