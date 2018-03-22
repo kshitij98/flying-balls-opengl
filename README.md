@@ -10,6 +10,10 @@ make
 ./graphics_asgn1
 ```
 
+## Screenshots
+
+![Gameplay](https://raw.githubusercontent.com/kshitij98/flying-balls-opengl/master/docs/screens/1.png?raw=true)
+
 ## Controls
 
 `a`: Move left
